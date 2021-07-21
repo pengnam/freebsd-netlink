@@ -321,7 +321,7 @@ rtnl_receive_message(void* data, struct socket *so)
 rtnl_load(void *u __unused)
 {
 	//TODO: initialize
-	nl_register_or_replace_handler(NETLINK_GENERIC, rtnl_receive_message);
+	//nl_register_or_replace_handler(NETLINK_GENERIC, rtnl_receive_message);
 	//TODO: initialize bsd nl
 }
 
