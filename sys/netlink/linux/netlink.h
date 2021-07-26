@@ -9,6 +9,24 @@
 #include <sys/socket.h>
 
 
+#define NETLINK_ROUTE		0	/* Routing/device hook				*/
+#define NETLINK_UNUSED		1	/* Unused number				*/
+#define NETLINK_USERSOCK	2	/* Reserved for user mode socket protocols 	*/
+#define NETLINK_FIREWALL	3	/* Unused number, formerly ip_queue		*/
+#define NETLINK_SOCK_DIAG	4	/* socket monitoring				*/
+#define NETLINK_NFLOG		5	/* netfilter/iptables ULOG */
+#define NETLINK_XFRM		6	/* ipsec */
+#define NETLINK_SELINUX		7	/* SELinux event notifications */
+#define NETLINK_ISCSI		8	/* Open-iSCSI */
+#define NETLINK_AUDIT		9	/* auditing */
+#define NETLINK_FIB_LOOKUP	10
+#define NETLINK_CONNECTOR	11
+#define NETLINK_NETFILTER	12	/* netfilter subsystem */
+#define NETLINK_IP6_FW		13
+#define NETLINK_DNRTMSG		14	/* DECnet routing messages */
+#define NETLINK_KOBJECT_UEVENT	15	/* Kernel messages to userspace */
+#define NETLINK_GENERIC		16
+
 struct sockaddr_nl {
 	uint8_t		nl_len;		/* FreeBSD SPECIFIC */
 	sa_family_t	nl_family;	/* AF_NETLINK */
@@ -17,7 +35,6 @@ struct sockaddr_nl {
 	uint32_t	nl_groups;	/* multicast groups mask */
 };
 
-#define NETLINK_GENERIC     16
 
 struct nlmsghdr {
 	uint32_t    nlmsg_len;  /* Length of message including header */
