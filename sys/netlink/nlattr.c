@@ -11,7 +11,7 @@
 				__LINE__, __FUNCTION__, ##__VA_ARGS__);         \
 	} while (0)
 
-	static int
+	int
 nla_type(const struct nlattr *nla)
 {
 	return nla->nla_type;
@@ -21,14 +21,14 @@ nla_len(const struct nlattr *nla)
 {
 	return nla->nla_len;
 }
-static inline void *nla_data(struct nlattr *nla)
+void *nla_data(struct nlattr *nla)
 {
 	return (char *) nla + NLA_HDRLEN;
 }
 /**
  * Check if netlink attribute fits into remaining bytes
  */
-static inline int nla_ok(const struct nlattr *nla, int remaining)
+int nla_ok(const struct nlattr *nla, int remaining)
 {
 	return remaining >= (int) sizeof(*nla) &&
 		nla->nla_len >= sizeof(*nla) &&
@@ -39,7 +39,7 @@ static inline int nla_ok(const struct nlattr *nla, int remaining)
  * Returns the next netlink attribute in the attribute stream and
  * decrements remaining by the size of the current attribute.
  */
-static inline struct nlattr *nla_next(struct nlattr *nla, int *remaining)
+struct nlattr *nla_next(struct nlattr *nla, int *remaining)
 {
 	unsigned int totlen = NLA_ALIGN(nla->nla_len);
 

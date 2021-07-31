@@ -214,6 +214,13 @@ static const uint8_t nla_attr_minlen[NLA_TYPE_MAX+1] = {
 #define NLA_ALIGN(len)		(((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
 #define NLA_HDRLEN		((int) NLA_ALIGN(sizeof(struct nlattr)))
 
+
+
+int nla_ok(const struct nlattr *nla, int remaining);
+struct nlattr *nla_next(struct nlattr *nla, int *remaining);
+int nla_type(const struct nlattr *nla);
+void *nla_data(struct nlattr *nla);
+
 /**
  * nla_for_each_attr - iterate over a stream of attributes
  * @pos: loop counter, set to current attribute
