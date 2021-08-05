@@ -387,42 +387,6 @@ enum rt_class_t {
 
 /* Routing message attributes */
 
-//enum rtattr_type_t {
-//	RTA_UNSPEC,
-//	RTA_DST,
-//	RTA_SRC,
-//	RTA_IIF,
-//	RTA_OIF,
-//	RTA_GATEWAY,
-//	RTA_PRIORITY,
-//	RTA_PREFSRC,
-//	RTA_METRICS,
-//	RTA_MULTIPATH,
-//	RTA_PROTOINFO, /* no longer used */
-//	RTA_FLOW,
-//	RTA_CACHEINFO,
-//	RTA_SESSION, /* no longer used */
-//	RTA_MP_ALGO, /* no longer used */
-//	RTA_TABLE,
-//	RTA_MARK,
-//	RTA_MFC_STATS,
-//	RTA_VIA,
-//	RTA_NEWDST,
-//	RTA_PREF,
-//	RTA_ENCAP_TYPE,
-//	RTA_ENCAP,
-//	RTA_EXPIRES,
-//	RTA_PAD,
-//	RTA_UID,
-//	RTA_TTL_PROPAGATE,
-//	RTA_IP_PROTO,
-//	RTA_SPORT,
-//	RTA_DPORT,
-//	RTA_NH_ID,
-//	__RTA_MAX
-//};
-//
-//#define RTA_MAX (__RTA_MAX - 1)
 
 #define RTM_RTA(r)  ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct rtmsg))))
 #define RTM_PAYLOAD(n) NLMSG_PAYLOAD(n,sizeof(struct rtmsg))

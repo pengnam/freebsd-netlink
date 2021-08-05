@@ -222,116 +222,122 @@ get_rtax_from_nla_type(int nla_type, int* rtax_type) {
     default:
 	    return EINVAL;
     }
+}
 
+static int
+ test_create_rtentry( struct rt_addrinfo *info)
+ {
+     struct sockaddr *dst,  *gateway, *netmask;
+     int  flags;
+
+     dst = info->rti_info[RTAX_DST];
+     gateway = info->rti_info[RTAX_GATEWAY];
+     netmask = info->rti_info[RTAX_NETMASK];
+     flags = info->rti_flags;
+    if (info->rti_flags & RTF_HOST)
+	 info->rti_info[RTAX_NETMASK] = NULL;
+     else if (info->rti_info[RTAX_NETMASK] == NULL) {
+	    D("oh no");
+	 return (EINVAL);
+     }
+
+     if ((flags & RTF_GATEWAY) && !gateway) {
+	     D("A");
+         return (EINVAL);
+     }
+     if (dst && gateway && (dst->sa_family != gateway->sa_family) &&
+         (gateway->sa_family != AF_UNSPEC) && (gateway->sa_family != AF_LINK)) {
+	     D("B");
+         return (EINVAL);
+     }
+
+     if (dst->sa_len > sizeof(((struct rtentry *)NULL)->rt_dstb)) {
+	     D("C");
+         return (EINVAL);
+     }
+     return 0;
 }
 
 static int
 rt_xaddrs(struct nlattr *head, int len, struct rt_addrinfo *rtinfo)
 {
-    struct sockaddr *sa;
+	struct sockaddr * sa;
     struct sockaddr_in *sai;
     int rem;
     int rtax_type;
     int error;
     int type;
+    int l;
     struct nlattr * nla;
-    D("in x_addrs");
+    printf("in x_addrs\n");
     
+    printf("CHECK: %d\n", rtinfo->rti_flags);
+    printf("len: %d\n", len);
     nla_for_each_attribute(nla, head, len, rem) {
         type = nla_type(nla);
-	D("nla_type: %d ", type);
-	//TODO: do I need to validate?
-	if ((error = get_rtax_from_nla_type(type, &rtax_type))) {
-		D("Retrieved invalid type: %d", type);
-		continue;
-	}
-	D("rtax_type: %d", rtax_type);
-	switch (rtax_type) {
-		case RTA_DST:
-			D("Nice its recognised");
-			    //TODO: look at fill_sockaddr_in
-			sa = malloc(sizeof(struct sockaddr),M_RTNETLINK, M_WAITOK | M_ZERO);
-			sa->sa_len = sizeof(struct sockaddr);
-			sa->sa_family = AF_INET;
-			sai = (struct sockaddr_in *) sa;
-			memcpy(&(sai->sin_addr), nla_data(nla), sizeof(uint32_t));
-			rtinfo->rti_info[rtax_type] = sa;
-			break;
-		default:
-			break;
-	}
+	l = nla->nla_len;
+
+        printf("nla_type: %d nla_len: %d ", type, l);
+        //TODO: do I need to validate?
+        if ((error = get_rtax_from_nla_type(type, &rtax_type))) {
+        	printf("Retrieved invalid type: %d\n", type);
+        	continue;
+        }
+        printf("rtax_type: %d\n", rtax_type);
+        switch (type) {
+        	case RTA_DST:
+		case RTA_GATEWAY:
+        		    //TODO: look at fill_sockaddr_in
+			sa = malloc(sizeof(struct sockaddr),M_RTNETLINK, M_NOWAIT | M_ZERO);
+			if (sa == NULL) {
+				return (ENOBUFS);
+			}
+        		sa->sa_len = sizeof(struct sockaddr);
+        		sa->sa_family = AF_INET;
+        		sai = (struct sockaddr_in *) sa;
+        		memcpy(&(sai->sin_addr), nla_data(nla), sizeof(uint32_t));
+        		rtinfo->rti_info[rtax_type] = sa;
+
+			rtinfo->rti_addrs |= type;
+        		break;
+        	default:
+
+        		break;
+        }
 
     }
 
-    ////OLD
-    //struct sockaddr *sa;
-    //int i;
-    //for (i = 0; i < RTAX_MAX && cp < cplim; i++) {
-    //    if ((rtinfo->rti_addrs & (1 << i)) == 0)
-    //        continue;
-    //    sa = (struct sockaddr *)cp;
-    //    /*
-    //     * It won't fit.
-    //     */
-    //    if (cp + sa->sa_len > cplim)
-    //        return (EINVAL);
-    //    /*
-    //     * there are no more.. quit now
-    //     * If there are more bits, they are in error.
-    //     * I've seen this. route(1) can evidently generate these.
-    //     * This causes kernel to core dump.
-    //     * for compatibility, If we see this, point to a safe address.
-    //     */
-    //    if (sa->sa_len == 0) {
-    //        rtinfo->rti_info[i] = &sa_zero;
-    //        return (0); /* should be EINVAL but for compat */
-    //    }
-    //    /* accept it */
-    //    rtinfo->rti_info[i] = sa;
-    //    cp += SA_SIZE(sa);
-    //}
+    //TODO: Handle netmask (corresponds to rtm_dst_len) for now assume everything host
+    rtinfo->rti_flags|= RTF_HOST;
+
+
     return (0);
 }
 
 static int
 fill_addrinfo(struct rtmsg *rtm, int len, struct rt_addrinfo *info)
 {
-	D("");
-    int error;
+    //int error;
     sa_family_t saf;
 
-    //rtm->rtm_pid = curproc->p_pid;
     //TODO
-    //rti_addrs should be retrieved from nlattr.. but it is also not a bitflag
-    //info->rti_addrs = rtm->rtm_addrs;
-
-    /*Previous: ulong metric flag to decide what is being initialized, does not exist in libmnl*/
-    //info->rti_mflags = rtm->rtm_inits;
-    /* */
-    //info->rti_rmx = &rtm->rtm_rmx;
 
     /*
      * rt_xaddrs() performs s6_addr[2] := sin6_scope_id for AF_INET6
      * link-local address because rtrequest requires addresses with
      * embedded scope id.
      */
+    printf("FIRST CHECK: %d\n", info->rti_flags);
+    info->rti_flags = rtm->rtm_flags;
     if (rt_xaddrs((struct nlattr *)(rtm + 1), len - sizeof(struct rtmsg), info))
         return (EINVAL);
 
-    info->rti_flags = rtm->rtm_flags;
+    printf("NEXT CHECK: %d\n",info->rti_flags);
     //error = cleanup_xaddrs(info, lb);
     //if (error != 0)
     //    return (error);
     saf = info->rti_info[RTAX_DST]->sa_family;
-    /*
-     * Verify that the caller has the appropriate privilege; RTM_GET
-     * is the only operation the non-superuser is allowed.
-     */
-    if (rtm->rtm_type != RTM_GET) {
-        error = priv_check(curthread, PRIV_NET_ROUTE);
-        if (error != 0)
-            return (error);
-    }
+    D("hmm seems okay");
 
 
     return (0);
@@ -346,12 +352,13 @@ rtnl_receive_message(void* data, struct socket *so)
 	struct epoch_tracker et;
 	//TODO: INET6
 	int  len, error = 0, fibnum;
-	sa_family_t saf = AF_UNSPEC;
+	//sa_family_t saf = AF_UNSPEC;
 	struct walkarg w;
 	struct rib_cmd_info rc;
 	struct nhop_object *nh;
 
 	fibnum = so->so_fibnum;
+
 #define senderr(e) { error = e; goto flush;}
 	//if (m == NULL || ((m->m_len < sizeof(long)) &&
 	//	       (m = m_pullup(m, sizeof(long))) == NULL))
@@ -387,25 +394,29 @@ rtnl_receive_message(void* data, struct socket *so)
 		senderr(error);
 	}
 
-	saf = info.rti_info[RTAX_DST]->sa_family;
+	//saf = info.rti_info[RTAX_DST]->sa_family;
 
 	//TODO: lldata flag handling
+	int test;
 	D("Received msg type: %d", hdr->nlmsg_type);
 
 	switch (hdr->nlmsg_type) {
 	case RTM_NEWROUTE:
 
 		//TODO: Fix header
-		if (hdr->nlmsg_type == RTM_ADD) {
-			if (info.rti_info[RTAX_GATEWAY] == NULL)
-				senderr(EINVAL);
-		}
-		error = rib_action(fibnum, hdr->nlmsg_type, &info, &rc);
-		if (error == 0) {
-			nh = rc.rc_nh_new;
-			//rtm->rtm_index = nh->nh_ifp->if_index;
-			//rtm->rtm_flags = rc.rc_rt->rte_flags | nhop_get_rtflags(nh);
-		}
+		D("RTAX_GATEWAY: %p", info.rti_info[RTAX_DST]);
+		if (info.rti_info[RTAX_GATEWAY] == NULL)
+			senderr(EINVAL);
+		
+		test = test_create_rtentry(&info);
+		D("TEST RESULT: %d:", test);
+		error = rib_action(fibnum, RTM_ADD, &info, &rc);
+		D("Error:%d", error);
+		//if (error == 0) {
+		//	nh = rc.rc_nh_new;
+		//	//rtm->rtm_index = nh->nh_ifp->if_index;
+		//	//rtm->rtm_flags = rc.rc_rt->rte_flags | nhop_get_rtflags(nh);
+		//}
 		break;
 
 	case RTM_DELROUTE:
@@ -672,29 +683,6 @@ cleanup_xaddrs_inet(struct rt_addrinfo *info, struct linear_buffer *lb)
     dst.s_addr = htonl(ntohl(dst_sa->sin_addr.s_addr) & ntohl(mask.s_addr));
 
     /* Construct new "clean" dst/mask sockaddresses */
-            struct sockaddr_dl *gw_sdl;
-
-            size_t sdl_min_len = offsetof(struct sockaddr_dl, sdl_data);
-            gw_sdl = (struct sockaddr_dl *)gw;
-            if (gw_sdl->sdl_len < sdl_min_len) {
-                RTS_PID_PRINTF("gateway sdl_len too small: %d", gw_sdl->sdl_len);
-                return (EINVAL);
-            }
-            sa = alloc_sockaddr_aligned(lb, sizeof(struct sockaddr_dl_short));
-            if (sa == NULL)
-                return (ENOBUFS);
-
-            const struct sockaddr_dl_short sdl = {
-                .sdl_family = AF_LINK,
-                .sdl_len = sizeof(struct sockaddr_dl_short),
-                .sdl_index = gw_sdl->sdl_index,
-            };
-            *((struct sockaddr_dl_short *)sa) = sdl;
-            info->rti_info[RTAX_GATEWAY] = sa;
-            break;
-        }
-    }
-
     return (0);
 }
 #endif
