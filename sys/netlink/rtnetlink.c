@@ -206,13 +206,6 @@ static int
 get_rtax_from_nla_type(int nla_type, int* rtax_type) {
 	//Consider doing validation here
 	switch (nla_type) {
-    case RTA_TABLE:
-    case RTA_SRC:
-    case RTA_OIF:
-    case RTA_FLOW:
-    case RTA_PREFSRC:
-    case RTA_PRIORITY:
-	    return EINVAL;
     case RTA_DST:
 	    *rtax_type = RTAX_DST; 
 	    return 0;
@@ -221,6 +214,16 @@ get_rtax_from_nla_type(int nla_type, int* rtax_type) {
 	    return 0;
     default:
 	    return EINVAL;
+    }
+}
+static int
+get_rtflag_from_nla_type(int nla_type) {
+	//Consider doing validation here
+	switch (nla_type) {
+    case RTA_GATEWAY:
+	    return RTF_GATEWAY;
+    default:
+	    return 0;
     }
 }
 
@@ -268,6 +271,7 @@ rt_xaddrs(struct nlattr *head, int len, struct rt_addrinfo *rtinfo)
     int error;
     int type;
     int l;
+    int flag;
     struct nlattr * nla;
     printf("in x_addrs\n");
     
@@ -283,6 +287,10 @@ rt_xaddrs(struct nlattr *head, int len, struct rt_addrinfo *rtinfo)
         	printf("Retrieved invalid type: %d\n", type);
         	continue;
         }
+	flag = get_rtflag_from_nla_type(type);
+	printf("flag: %d\n", flag);
+	rtinfo->rti_flags |= flag;
+	printf("rti_flag:%d\n", rtinfo->rti_flags);
         printf("rtax_type: %d\n", rtax_type);
         switch (type) {
         	case RTA_DST:
@@ -318,7 +326,7 @@ static int
 fill_addrinfo(struct rtmsg *rtm, int len, struct rt_addrinfo *info)
 {
     //int error;
-    sa_family_t saf;
+    //sa_family_t saf;
 
     //TODO
 
@@ -328,7 +336,6 @@ fill_addrinfo(struct rtmsg *rtm, int len, struct rt_addrinfo *info)
      * embedded scope id.
      */
     printf("FIRST CHECK: %d\n", info->rti_flags);
-    info->rti_flags = rtm->rtm_flags;
     if (rt_xaddrs((struct nlattr *)(rtm + 1), len - sizeof(struct rtmsg), info))
         return (EINVAL);
 
@@ -336,7 +343,6 @@ fill_addrinfo(struct rtmsg *rtm, int len, struct rt_addrinfo *info)
     //error = cleanup_xaddrs(info, lb);
     //if (error != 0)
     //    return (error);
-    saf = info->rti_info[RTAX_DST]->sa_family;
     D("hmm seems okay");
 
 
