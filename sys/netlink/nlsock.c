@@ -369,6 +369,7 @@ nl_message_length(int offset, struct mbuf *m)
 	if (message_length < NLMSG_HDRLEN || offset + message_length > total_length) {
 		return 0;
 	}
+	D("Returning length :%d\n", message_length);
 	return message_length;
 }
 
