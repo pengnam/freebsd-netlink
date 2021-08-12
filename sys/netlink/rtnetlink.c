@@ -33,9 +33,9 @@
 #include <netinet/if_ether.h>
 #include <netinet/ip_carp.h>
 #include <net/route/route_var.h>
-     #include <sys/types.h>
-     #include <sys/socket.h>
-     #include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 
 #include <net/rtnetlink.h>
@@ -67,40 +67,6 @@ MALLOC_DEFINE(M_RTNETLINK, "rtnetlink", "Memory used for rtnetlink packets");
  };
  #endif /* _SOCKADDR_UNION_DEFINED */
 
-struct walkarg {
-    int family;
-    int w_tmemsize;
-    int w_op, w_arg;
-    caddr_t w_tmem;
-    struct sysctl_req *w_req;
-    struct sockaddr *dst;
-    struct sockaddr *mask;
-};
-
-struct linear_buffer {
-    char        *base;  /* Base allocated memory pointer */
-    uint32_t    offset; /* Currently used offset */
-    uint32_t    size;   /* Total buffer size */
-};
-/* NB: these are not modified */
-//static struct   sockaddr route_src = { 2, PF_ROUTE, };
-static struct   sockaddr sa_zero   = { sizeof(sa_zero), AF_INET, };
-
-
-
-// 346 struct rt_addrinfo {
-// 347     int rti_addrs;          /* Route RTF_ flags */
-// 348     int rti_flags;          /* Route RTF_ flags */
-// 350     struct  ifaddr *rti_ifa;        /* value of rt_ifa addr */
-// 351     struct  ifnet *rti_ifp;         /* route interface */
-// 352     rib_filter_f_t  *rti_filter;        /* filter function */
-// 353     void    *rti_filterdata;        /* filter paramenters */
-// 354     u_long  rti_mflags;         /* metrics RTV_ flags */
-// 355     u_long  rti_spare;          /* Will be used for fib */
-// 356     struct  rt_metrics *rti_rmx;        /* Pointer to route metrics */
-// 357 };
-//
-static int  cleanup_xaddrs(struct rt_addrinfo *info, struct linear_buffer *lb);
 
 static struct nhop_object *
 select_nhop(struct nhop_object *nh, const struct sockaddr *gw)
@@ -113,7 +79,7 @@ select_nhop(struct nhop_object *nh, const struct sockaddr *gw)
 
 static int
 handle_rtm_get(struct rt_addrinfo *info, u_int fibnum,
-    int addrs /*rtm_addrs*/, int flags /*rtm_flags*/, struct rib_cmd_info *rc)
+    int addrs , int flags, struct rib_cmd_info *rc)
 {
     RIB_RLOCK_TRACKER;
     struct rib_head *rnh;
@@ -128,19 +94,7 @@ handle_rtm_get(struct rt_addrinfo *info, u_int fibnum,
 
     RIB_RLOCK(rnh);
 
-    /*
-     * By (implicit) convention host route (one without netmask)
-     * means longest-prefix-match request and the route with netmask
-     * means exact-match lookup.
-     * As cleanup_xaddrs() cleans up info flags&addrs for the /32,/128
-     * prefixes, use original data to check for the netmask presence.
-     */
     if ((addrs & RTA_NETMASK) == 0) {
-        /*
-         * Provide longest prefix match for
-         * address lookup (no mask).
-         * 'route -n get addr'
-         */
         rc->rc_rt = (struct rtentry *) rnh->rnh_matchaddr(
             info->rti_info[RTAX_DST], &rnh->head);
     } else
@@ -168,7 +122,7 @@ handle_rtm_get(struct rt_addrinfo *info, u_int fibnum,
 
 static int
 get_rtax_from_nla_type(int nla_type, int* rtax_type) {
-	//Consider doing validation here
+	//TODO:Consider doing validation here
 	switch (nla_type) {
     case RTA_DST:
 	    *rtax_type = RTAX_DST; 
@@ -182,7 +136,7 @@ get_rtax_from_nla_type(int nla_type, int* rtax_type) {
 }
 static int
 get_nla_type_from_rtax(int rtax, int* nla_type) {
-	//Consider doing validation here
+	//TODO:Consider doing validation here
 	switch (rtax) {
     case RTAX_DST:
 	    *nla_type = RTA_DST; 
@@ -217,15 +171,10 @@ rt_xaddrs(struct nlattr *head, int len, struct rt_addrinfo *rtinfo)
     int l;
     int flag;
     struct nlattr * nla;
-    printf("in x_addrs\n");
-    
-    printf("CHECK: %d\n", rtinfo->rti_flags);
-    printf("len: %d\n", len);
     nla_for_each_attribute(nla, head, len, rem) {
         type = nla_type(nla);
-	l = nla->nla_len;
+        l = nla->nla_len;
 
-        printf("nla_type: %d nla_len: %d ", type, l);
         //TODO: do I need to validate?
         if ((error = get_rtax_from_nla_type(type, &rtax_type))) {
         	printf("Retrieved invalid type: %d\n", type);
@@ -412,7 +361,6 @@ rtnl_receive_message(void* data, struct socket *so)
 	struct epoch_tracker et;
 	//TODO: INET6
 	int  len, error = 0, fibnum;
-	struct walkarg w;
 	struct rib_cmd_info rc;
 	struct nhop_object *nh;
 
@@ -421,7 +369,6 @@ rtnl_receive_message(void* data, struct socket *so)
 #define senderr(e) { error = e; goto flush;}
 	NET_EPOCH_ENTER(et);
 	bzero(&info, sizeof(info));
-	bzero(&w, sizeof(w));
 	nh = NULL;
 	struct nlmsghdr * hdr = (struct nlmsghdr*) data;
 	len = hdr->nlmsg_len - NLMSG_HDRLEN;
