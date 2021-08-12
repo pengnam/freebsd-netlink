@@ -3,24 +3,22 @@
 #define _UAPI__LINUX_RTNETLINK_H
 
 #include <sys/types.h>
-
 #include <net/if.h>
 #include <net/if_types.h>
 #include <net/if_var.h>
+#include <linux/netlink.h>
+#include <linux/if_link.h> /*copy of linux/if_link.h */
 #include <net/route.h>
 #include <netinet/in.h>
 
-#include <linux/if_link.h> /*copy of linux/if_link.h */
-#include <linux/netlink.h>
-
-// TODO: Fix hack
+//TODO: Fix hack
 enum rtattr_type_t {
 	RTA_UNSPEC = 0x81,
-	// RTA_DST,
+	//RTA_DST,
 	RTA_SRC,
 	RTA_IIF,
 	RTA_OIF,
-	// RTA_GATEWAY,
+	//RTA_GATEWAY,
 	RTA_PRIORITY,
 	RTA_PREFSRC,
 	RTA_METRICS,
@@ -50,9 +48,9 @@ enum rtattr_type_t {
 /* rtnetlink families. Values up to 127 are reserved for real address
  * families, values above 128 may be used arbitrarily.
  */
-#define RTNL_FAMILY_IPMR 128
-#define RTNL_FAMILY_IP6MR 129
-#define RTNL_FAMILY_MAX 129
+#define RTNL_FAMILY_IPMR		128
+#define RTNL_FAMILY_IP6MR		129
+#define RTNL_FAMILY_MAX			129
 
 /****
  *		Routing/neighbour discovery messages.
@@ -60,90 +58,92 @@ enum rtattr_type_t {
 
 /* Types of messages */
 
-// NOTE: predefined ones in route.h end at 12
-enum { RTM_BASE = 16,
-#define RTM_BASE RTM_BASE
+//NOTE: predefined ones in route.h end at 12
+enum {
+	RTM_BASE	= 16,
+#define RTM_BASE	RTM_BASE
 
-	RTM_NEWLINK = 16,
-#define RTM_NEWLINK RTM_NEWLINK
+	RTM_NEWLINK	= 16,
+#define RTM_NEWLINK	RTM_NEWLINK
 	RTM_DELLINK,
-#define RTM_DELLINK RTM_DELLINK
+#define RTM_DELLINK	RTM_DELLINK
 	RTM_GETLINK,
-#define RTM_GETLINK RTM_GETLINK
+#define RTM_GETLINK	RTM_GETLINK
 	RTM_SETLINK,
-#define RTM_SETLINK RTM_SETLINK
+#define RTM_SETLINK	RTM_SETLINK
 
-	//	RTM_NEWADDR	= 20,
-	//#define RTM_NEWADDR	RTM_NEWADDR
-	//	RTM_DELADDR,
-	//#define RTM_DELADDR	RTM_DELADDR
+	
+//	RTM_NEWADDR	= 20,
+//#define RTM_NEWADDR	RTM_NEWADDR
+//	RTM_DELADDR,
+//#define RTM_DELADDR	RTM_DELADDR
 	RTM_GETADDR = 22,
-#define RTM_GETADDR RTM_GETADDR
+#define RTM_GETADDR	RTM_GETADDR
 
-	RTM_NEWROUTE = 24,
-#define RTM_NEWROUTE RTM_NEWROUTE
+	RTM_NEWROUTE	= 24,
+#define RTM_NEWROUTE	RTM_NEWROUTE
 	RTM_DELROUTE,
-#define RTM_DELROUTE RTM_DELROUTE
+#define RTM_DELROUTE	RTM_DELROUTE
 	RTM_GETROUTE,
-#define RTM_GETROUTE RTM_GETROUTE
+#define RTM_GETROUTE	RTM_GETROUTE
 
-	RTM_NEWNEIGH = 28,
-#define RTM_NEWNEIGH RTM_NEWNEIGH
+	RTM_NEWNEIGH	= 28,
+#define RTM_NEWNEIGH	RTM_NEWNEIGH
 	RTM_DELNEIGH,
-#define RTM_DELNEIGH RTM_DELNEIGH
+#define RTM_DELNEIGH	RTM_DELNEIGH
 	RTM_GETNEIGH,
-#define RTM_GETNEIGH RTM_GETNEIGH
+#define RTM_GETNEIGH	RTM_GETNEIGH
 
-	RTM_NEWRULE = 32,
-#define RTM_NEWRULE RTM_NEWRULE
+	RTM_NEWRULE	= 32,
+#define RTM_NEWRULE	RTM_NEWRULE
 	RTM_DELRULE,
-#define RTM_DELRULE RTM_DELRULE
+#define RTM_DELRULE	RTM_DELRULE
 	RTM_GETRULE,
-#define RTM_GETRULE RTM_GETRULE
+#define RTM_GETRULE	RTM_GETRULE
 
-	RTM_NEWQDISC = 36,
-#define RTM_NEWQDISC RTM_NEWQDISC
+	RTM_NEWQDISC	= 36,
+#define RTM_NEWQDISC	RTM_NEWQDISC
 	RTM_DELQDISC,
-#define RTM_DELQDISC RTM_DELQDISC
+#define RTM_DELQDISC	RTM_DELQDISC
 	RTM_GETQDISC,
-#define RTM_GETQDISC RTM_GETQDISC
+#define RTM_GETQDISC	RTM_GETQDISC
 
-	RTM_NEWTCLASS = 40,
-#define RTM_NEWTCLASS RTM_NEWTCLASS
+	RTM_NEWTCLASS	= 40,
+#define RTM_NEWTCLASS	RTM_NEWTCLASS
 	RTM_DELTCLASS,
-#define RTM_DELTCLASS RTM_DELTCLASS
+#define RTM_DELTCLASS	RTM_DELTCLASS
 	RTM_GETTCLASS,
-#define RTM_GETTCLASS RTM_GETTCLASS
+#define RTM_GETTCLASS	RTM_GETTCLASS
 
-	RTM_NEWTFILTER = 44,
-#define RTM_NEWTFILTER RTM_NEWTFILTER
+	RTM_NEWTFILTER	= 44,
+#define RTM_NEWTFILTER	RTM_NEWTFILTER
 	RTM_DELTFILTER,
-#define RTM_DELTFILTER RTM_DELTFILTER
+#define RTM_DELTFILTER	RTM_DELTFILTER
 	RTM_GETTFILTER,
-#define RTM_GETTFILTER RTM_GETTFILTER
+#define RTM_GETTFILTER	RTM_GETTFILTER
 
-	RTM_NEWACTION = 48,
-#define RTM_NEWACTION RTM_NEWACTION
+	RTM_NEWACTION	= 48,
+#define RTM_NEWACTION   RTM_NEWACTION
 	RTM_DELACTION,
-#define RTM_DELACTION RTM_DELACTION
+#define RTM_DELACTION   RTM_DELACTION
 	RTM_GETACTION,
-#define RTM_GETACTION RTM_GETACTION
+#define RTM_GETACTION   RTM_GETACTION
 
-	RTM_NEWPREFIX = 52,
-#define RTM_NEWPREFIX RTM_NEWPREFIX
+	RTM_NEWPREFIX	= 52,
+#define RTM_NEWPREFIX	RTM_NEWPREFIX
 
 	RTM_GETMULTICAST = 58,
 #define RTM_GETMULTICAST RTM_GETMULTICAST
 
-	RTM_GETANYCAST = 62,
-#define RTM_GETANYCAST RTM_GETANYCAST
+	RTM_GETANYCAST	= 62,
+#define RTM_GETANYCAST	RTM_GETANYCAST
 
-	RTM_NEWNEIGHTBL = 64,
-#define RTM_NEWNEIGHTBL RTM_NEWNEIGHTBL
-	RTM_GETNEIGHTBL = 66,
-#define RTM_GETNEIGHTBL RTM_GETNEIGHTBL
+	RTM_NEWNEIGHTBL	= 64,
+#define RTM_NEWNEIGHTBL	RTM_NEWNEIGHTBL
+	RTM_GETNEIGHTBL	= 66,
+#define RTM_GETNEIGHTBL	RTM_GETNEIGHTBL
 	RTM_SETNEIGHTBL,
-#define RTM_SETNEIGHTBL RTM_SETNEIGHTBL
+#define RTM_SETNEIGHTBL	RTM_SETNEIGHTBL
 
 	RTM_NEWNDUSEROPT = 68,
 #define RTM_NEWNDUSEROPT RTM_NEWNDUSEROPT
@@ -197,115 +197,118 @@ enum { RTM_BASE = 16,
 #define RTM_GETCHAIN RTM_GETCHAIN
 
 	RTM_NEWNEXTHOP = 104,
-#define RTM_NEWNEXTHOP RTM_NEWNEXTHOP
+#define RTM_NEWNEXTHOP	RTM_NEWNEXTHOP
 	RTM_DELNEXTHOP,
-#define RTM_DELNEXTHOP RTM_DELNEXTHOP
+#define RTM_DELNEXTHOP	RTM_DELNEXTHOP
 	RTM_GETNEXTHOP,
-#define RTM_GETNEXTHOP RTM_GETNEXTHOP
+#define RTM_GETNEXTHOP	RTM_GETNEXTHOP
 
 	RTM_NEWLINKPROP = 108,
-#define RTM_NEWLINKPROP RTM_NEWLINKPROP
+#define RTM_NEWLINKPROP	RTM_NEWLINKPROP
 	RTM_DELLINKPROP,
-#define RTM_DELLINKPROP RTM_DELLINKPROP
+#define RTM_DELLINKPROP	RTM_DELLINKPROP
 	RTM_GETLINKPROP,
-#define RTM_GETLINKPROP RTM_GETLINKPROP
+#define RTM_GETLINKPROP	RTM_GETLINKPROP
 
 	RTM_NEWVLAN = 112,
-#define RTM_NEWNVLAN RTM_NEWVLAN
+#define RTM_NEWNVLAN	RTM_NEWVLAN
 	RTM_DELVLAN,
-#define RTM_DELVLAN RTM_DELVLAN
+#define RTM_DELVLAN	RTM_DELVLAN
 	RTM_GETVLAN,
-#define RTM_GETVLAN RTM_GETVLAN
+#define RTM_GETVLAN	RTM_GETVLAN
 
 	RTM_NEWNEXTHOPBUCKET = 116,
-#define RTM_NEWNEXTHOPBUCKET RTM_NEWNEXTHOPBUCKET
+#define RTM_NEWNEXTHOPBUCKET	RTM_NEWNEXTHOPBUCKET
 	RTM_DELNEXTHOPBUCKET,
-#define RTM_DELNEXTHOPBUCKET RTM_DELNEXTHOPBUCKET
+#define RTM_DELNEXTHOPBUCKET	RTM_DELNEXTHOPBUCKET
 	RTM_GETNEXTHOPBUCKET,
-#define RTM_GETNEXTHOPBUCKET RTM_GETNEXTHOPBUCKET
+#define RTM_GETNEXTHOPBUCKET	RTM_GETNEXTHOPBUCKET
 
 	__RTM_MAX,
-#define RTM_MAX (((__RTM_MAX + 3) & ~3) - 1)
+#define RTM_MAX		(((__RTM_MAX + 3) & ~3) - 1)
 };
 
-#define RTM_NR_MSGTYPES (RTM_MAX + 1 - RTM_BASE)
-#define RTM_NR_FAMILIES (RTM_NR_MSGTYPES >> 2)
-#define RTM_FAM(cmd) (((cmd)-RTM_BASE) >> 2)
+#define RTM_NR_MSGTYPES	(RTM_MAX + 1 - RTM_BASE)
+#define RTM_NR_FAMILIES	(RTM_NR_MSGTYPES >> 2)
+#define RTM_FAM(cmd)	(((cmd) - RTM_BASE) >> 2)
 
-/*
+/* 
    Generic structure for encapsulation of optional route information.
    It is reminiscent of sockaddr, but with sa_family replaced
    with attribute type.
  */
 
 struct rtattr {
-	unsigned short rta_len;
-	unsigned short rta_type;
+	unsigned short	rta_len;
+	unsigned short	rta_type;
 };
 
 /* Macros to handle rtattributes */
 
-#define RTA_ALIGNTO 4U
-#define RTA_ALIGN(len) (((len) + RTA_ALIGNTO - 1) & ~(RTA_ALIGNTO - 1))
-#define RTA_OK(rta, len)                               \
-	((len) >= (int)sizeof(struct rtattr) &&        \
-	    (rta)->rta_len >= sizeof(struct rtattr) && \
-	    (rta)->rta_len <= (len))
-#define RTA_NEXT(rta, attrlen)                   \
-	((attrlen) -= RTA_ALIGN((rta)->rta_len), \
-	    (struct rtattr *)(((char *)(rta)) + RTA_ALIGN((rta)->rta_len)))
-#define RTA_LENGTH(len) (RTA_ALIGN(sizeof(struct rtattr)) + (len))
-#define RTA_SPACE(len) RTA_ALIGN(RTA_LENGTH(len))
-#define RTA_DATA(rta) ((void *)(((char *)(rta)) + RTA_LENGTH(0)))
+#define RTA_ALIGNTO	4U
+#define RTA_ALIGN(len) ( ((len)+RTA_ALIGNTO-1) & ~(RTA_ALIGNTO-1) )
+#define RTA_OK(rta,len) ((len) >= (int)sizeof(struct rtattr) && \
+			 (rta)->rta_len >= sizeof(struct rtattr) && \
+			 (rta)->rta_len <= (len))
+#define RTA_NEXT(rta,attrlen)	((attrlen) -= RTA_ALIGN((rta)->rta_len), \
+				 (struct rtattr*)(((char*)(rta)) + RTA_ALIGN((rta)->rta_len)))
+#define RTA_LENGTH(len)	(RTA_ALIGN(sizeof(struct rtattr)) + (len))
+#define RTA_SPACE(len)	RTA_ALIGN(RTA_LENGTH(len))
+#define RTA_DATA(rta)   ((void*)(((char*)(rta)) + RTA_LENGTH(0)))
 #define RTA_PAYLOAD(rta) ((int)((rta)->rta_len) - RTA_LENGTH(0))
+
+
+
 
 /******************************************************************************
  *		Definitions used in routing table administration.
  ****/
 
 struct rtmsg {
-	unsigned char rtm_family;
-	unsigned char rtm_dst_len;
-	unsigned char rtm_src_len;
-	unsigned char rtm_tos;
+	unsigned char		rtm_family;
+	unsigned char		rtm_dst_len;
+	unsigned char		rtm_src_len;
+	unsigned char		rtm_tos;
 
-	unsigned char rtm_table;    /* Routing table id */
-	unsigned char rtm_protocol; /* Routing protocol; see below	*/
-	unsigned char rtm_scope;    /* See below */
-	unsigned char rtm_type;	    /* See below	*/
+	unsigned char		rtm_table;	/* Routing table id */
+	unsigned char		rtm_protocol;	/* Routing protocol; see below	*/
+	unsigned char		rtm_scope;	/* See below */	
+	unsigned char		rtm_type;	/* See below	*/
 
-	unsigned rtm_flags;
+	unsigned		rtm_flags;
 };
 
 /* rtm_type */
 
-enum { RTN_UNSPEC,
-	RTN_UNICAST,	 /* Gateway or direct route	*/
-	RTN_LOCAL,	 /* Accept locally		*/
-	RTN_BROADCAST,	 /* Accept locally as broadcast,
-			    send as broadcast */
-	RTN_ANYCAST,	 /* Accept locally as broadcast,
-			    but send as unicast */
-	RTN_MULTICAST,	 /* Multicast route		*/
-	RTN_BLACKHOLE,	 /* Drop				*/
-	RTN_UNREACHABLE, /* Destination is unreachable   */
-	RTN_PROHIBIT,	 /* Administratively prohibited	*/
-	RTN_THROW,	 /* Not in this table		*/
-	RTN_NAT,	 /* Translate this address	*/
-	RTN_XRESOLVE,	 /* Use external resolver	*/
-	__RTN_MAX };
+enum {
+	RTN_UNSPEC,
+	RTN_UNICAST,		/* Gateway or direct route	*/
+	RTN_LOCAL,		/* Accept locally		*/
+	RTN_BROADCAST,		/* Accept locally as broadcast,
+				   send as broadcast */
+	RTN_ANYCAST,		/* Accept locally as broadcast,
+				   but send as unicast */
+	RTN_MULTICAST,		/* Multicast route		*/
+	RTN_BLACKHOLE,		/* Drop				*/
+	RTN_UNREACHABLE,	/* Destination is unreachable   */
+	RTN_PROHIBIT,		/* Administratively prohibited	*/
+	RTN_THROW,		/* Not in this table		*/
+	RTN_NAT,		/* Translate this address	*/
+	RTN_XRESOLVE,		/* Use external resolver	*/
+	__RTN_MAX
+};
 
 #define RTN_MAX (__RTN_MAX - 1)
 
+
 /* rtm_protocol */
 
-#define RTPROT_UNSPEC 0
-#define RTPROT_REDIRECT                                       \
-	1		/* Route installed by ICMP redirects; \
-			   not used by current IPv4 */
-#define RTPROT_KERNEL 2 /* Route installed by kernel		*/
-#define RTPROT_BOOT 3	/* Route installed during boot		*/
-#define RTPROT_STATIC 4 /* Route installed by administrator	*/
+#define RTPROT_UNSPEC		0
+#define RTPROT_REDIRECT		1	/* Route installed by ICMP redirects;
+					   not used by current IPv4 */
+#define RTPROT_KERNEL		2	/* Route installed by kernel		*/
+#define RTPROT_BOOT		3	/* Route installed during boot		*/
+#define RTPROT_STATIC		4	/* Route installed by administrator	*/
 
 /* Values of protocol >= RTPROT_STATIC are not interpreted by kernel;
    they are just passed from user and back as is.
@@ -314,24 +317,24 @@ enum { RTN_UNSPEC,
    avoid conflicts.
  */
 
-#define RTPROT_GATED 8	     /* Apparently, GateD */
-#define RTPROT_RA 9	     /* RDISC/ND router advertisements */
-#define RTPROT_MRT 10	     /* Merit MRT */
-#define RTPROT_ZEBRA 11	     /* Zebra */
-#define RTPROT_BIRD 12	     /* BIRD */
-#define RTPROT_DNROUTED 13   /* DECnet routing daemon */
-#define RTPROT_XORP 14	     /* XORP */
-#define RTPROT_NTK 15	     /* Netsukuku */
-#define RTPROT_DHCP 16	     /* DHCP client */
-#define RTPROT_MROUTED 17    /* Multicast daemon */
-#define RTPROT_KEEPALIVED 18 /* Keepalived daemon */
-#define RTPROT_BABEL 42	     /* Babel daemon */
-#define RTPROT_OPENR 99	     /* Open Routing (Open/R) Routes */
-#define RTPROT_BGP 186	     /* BGP Routes */
-#define RTPROT_ISIS 187	     /* ISIS Routes */
-#define RTPROT_OSPF 188	     /* OSPF Routes */
-#define RTPROT_RIP 189	     /* RIP Routes */
-#define RTPROT_EIGRP 192     /* EIGRP Routes */
+#define RTPROT_GATED		8	/* Apparently, GateD */
+#define RTPROT_RA		9	/* RDISC/ND router advertisements */
+#define RTPROT_MRT		10	/* Merit MRT */
+#define RTPROT_ZEBRA		11	/* Zebra */
+#define RTPROT_BIRD		12	/* BIRD */
+#define RTPROT_DNROUTED		13	/* DECnet routing daemon */
+#define RTPROT_XORP		14	/* XORP */
+#define RTPROT_NTK		15	/* Netsukuku */
+#define RTPROT_DHCP		16	/* DHCP client */
+#define RTPROT_MROUTED		17	/* Multicast daemon */
+#define RTPROT_KEEPALIVED	18	/* Keepalived daemon */
+#define RTPROT_BABEL		42	/* Babel daemon */
+#define RTPROT_OPENR		99	/* Open Routing (Open/R) Routes */
+#define RTPROT_BGP		186	/* BGP Routes */
+#define RTPROT_ISIS		187	/* ISIS Routes */
+#define RTPROT_OSPF		188	/* OSPF Routes */
+#define RTPROT_RIP		189	/* RIP Routes */
+#define RTPROT_EIGRP		192	/* EIGRP Routes */
 
 /* rtm_scope
 
@@ -345,48 +348,48 @@ enum { RTN_UNSPEC,
 */
 
 enum rt_scope_t {
-	RT_SCOPE_UNIVERSE = 0,
-	/* User defined values  */
-	RT_SCOPE_SITE = 200,
-	RT_SCOPE_LINK = 253,
-	RT_SCOPE_HOST = 254,
-	RT_SCOPE_NOWHERE = 255
+	RT_SCOPE_UNIVERSE=0,
+/* User defined values  */
+	RT_SCOPE_SITE=200,
+	RT_SCOPE_LINK=253,
+	RT_SCOPE_HOST=254,
+	RT_SCOPE_NOWHERE=255
 };
 
 /* rtm_flags */
 
-#define RTM_F_NOTIFY 0x100	  /* Notify user of route change	*/
-#define RTM_F_CLONED 0x200	  /* This route is cloned		*/
-#define RTM_F_EQUALIZE 0x400	  /* Multipath equalizer: NI	*/
-#define RTM_F_PREFIX 0x800	  /* Prefix addresses		*/
-#define RTM_F_LOOKUP_TABLE 0x1000 /* set rtm_table to FIB lookup result */
-#define RTM_F_FIB_MATCH 0x2000	  /* return full fib lookup match */
-#define RTM_F_OFFLOAD 0x4000	  /* route is offloaded */
-#define RTM_F_TRAP 0x8000	  /* route is trapping packets */
-#define RTM_F_OFFLOAD_FAILED                            \
-	0x20000000 /* route offload failed, this value  \
-		    * is chosen to avoid conflicts with \
-		    * other flags defined in            \
-		    * include/uapi/linux/ipv6_route.h   \
-		    */
+#define RTM_F_NOTIFY		0x100	/* Notify user of route change	*/
+#define RTM_F_CLONED		0x200	/* This route is cloned		*/
+#define RTM_F_EQUALIZE		0x400	/* Multipath equalizer: NI	*/
+#define RTM_F_PREFIX		0x800	/* Prefix addresses		*/
+#define RTM_F_LOOKUP_TABLE	0x1000	/* set rtm_table to FIB lookup result */
+#define RTM_F_FIB_MATCH	        0x2000	/* return full fib lookup match */
+#define RTM_F_OFFLOAD		0x4000	/* route is offloaded */
+#define RTM_F_TRAP		0x8000	/* route is trapping packets */
+#define RTM_F_OFFLOAD_FAILED	0x20000000 /* route offload failed, this value
+					    * is chosen to avoid conflicts with
+					    * other flags defined in
+					    * include/uapi/linux/ipv6_route.h
+					    */
 
 /* Reserved table identifiers */
 
 enum rt_class_t {
-	RT_TABLE_UNSPEC = 0,
-	/* User defined values */
-	RT_TABLE_COMPAT = 252,
-	RT_TABLE_DEFAULT = 253,
-	RT_TABLE_MAIN = 254,
-	RT_TABLE_LOCAL = 255,
-	RT_TABLE_MAX = 0xFFFFFFFF
+	RT_TABLE_UNSPEC=0,
+/* User defined values */
+	RT_TABLE_COMPAT=252,
+	RT_TABLE_DEFAULT=253,
+	RT_TABLE_MAIN=254,
+	RT_TABLE_LOCAL=255,
+	RT_TABLE_MAX=0xFFFFFFFF
 };
+
 
 /* Routing message attributes */
 
-#define RTM_RTA(r) \
-	((struct rtattr *)(((char *)(r)) + NLMSG_ALIGN(sizeof(struct rtmsg))))
-#define RTM_PAYLOAD(n) NLMSG_PAYLOAD(n, sizeof(struct rtmsg))
+
+#define RTM_RTA(r)  ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct rtmsg))))
+#define RTM_PAYLOAD(n) NLMSG_PAYLOAD(n,sizeof(struct rtmsg))
 
 /* RTM_MULTIPATH --- array of struct rtnexthop.
  *
@@ -398,62 +401,60 @@ enum rt_class_t {
  */
 
 struct rtnexthop {
-	unsigned short rtnh_len;
-	unsigned char rtnh_flags;
-	unsigned char rtnh_hops;
-	int rtnh_ifindex;
+	unsigned short		rtnh_len;
+	unsigned char		rtnh_flags;
+	unsigned char		rtnh_hops;
+	int			rtnh_ifindex;
 };
 
 /* rtnh_flags */
 
-#define RTNH_F_DEAD 1	     /* Nexthop is dead (used by multipath)	*/
-#define RTNH_F_PERVASIVE 2   /* Do recursive gateway lookup	*/
-#define RTNH_F_ONLINK 4	     /* Gateway is forced on link	*/
-#define RTNH_F_OFFLOAD 8     /* Nexthop is offloaded */
-#define RTNH_F_LINKDOWN 16   /* carrier-down on nexthop */
-#define RTNH_F_UNRESOLVED 32 /* The entry is unresolved (ipmr) */
-#define RTNH_F_TRAP 64	     /* Nexthop is trapping packets */
+#define RTNH_F_DEAD		1	/* Nexthop is dead (used by multipath)	*/
+#define RTNH_F_PERVASIVE	2	/* Do recursive gateway lookup	*/
+#define RTNH_F_ONLINK		4	/* Gateway is forced on link	*/
+#define RTNH_F_OFFLOAD		8	/* Nexthop is offloaded */
+#define RTNH_F_LINKDOWN		16	/* carrier-down on nexthop */
+#define RTNH_F_UNRESOLVED	32	/* The entry is unresolved (ipmr) */
+#define RTNH_F_TRAP		64	/* Nexthop is trapping packets */
 
-#define RTNH_COMPARE_MASK \
-	(RTNH_F_DEAD | RTNH_F_LINKDOWN | RTNH_F_OFFLOAD | RTNH_F_TRAP)
+#define RTNH_COMPARE_MASK	(RTNH_F_DEAD | RTNH_F_LINKDOWN | \
+				 RTNH_F_OFFLOAD | RTNH_F_TRAP)
 
 /* Macros to handle hexthops */
 
-#define RTNH_ALIGNTO 4
-#define RTNH_ALIGN(len) (((len) + RTNH_ALIGNTO - 1) & ~(RTNH_ALIGNTO - 1))
-#define RTNH_OK(rtnh, len)                               \
-	((rtnh)->rtnh_len >= sizeof(struct rtnexthop) && \
-	    ((int)(rtnh)->rtnh_len) <= (len))
-#define RTNH_NEXT(rtnh) \
-	((struct rtnexthop *)(((char *)(rtnh)) + RTNH_ALIGN((rtnh)->rtnh_len)))
+#define RTNH_ALIGNTO	4
+#define RTNH_ALIGN(len) ( ((len)+RTNH_ALIGNTO-1) & ~(RTNH_ALIGNTO-1) )
+#define RTNH_OK(rtnh,len) ((rtnh)->rtnh_len >= sizeof(struct rtnexthop) && \
+			   ((int)(rtnh)->rtnh_len) <= (len))
+#define RTNH_NEXT(rtnh)	((struct rtnexthop*)(((char*)(rtnh)) + RTNH_ALIGN((rtnh)->rtnh_len)))
 #define RTNH_LENGTH(len) (RTNH_ALIGN(sizeof(struct rtnexthop)) + (len))
-#define RTNH_SPACE(len) RTNH_ALIGN(RTNH_LENGTH(len))
-#define RTNH_DATA(rtnh) ((struct rtattr *)(((char *)(rtnh)) + RTNH_LENGTH(0)))
+#define RTNH_SPACE(len)	RTNH_ALIGN(RTNH_LENGTH(len))
+#define RTNH_DATA(rtnh)   ((struct rtattr*)(((char*)(rtnh)) + RTNH_LENGTH(0)))
 
 /* RTA_VIA */
 struct rtvia {
-	sa_family_t nl_family; /* AF_NETLINK */
-	uint8_t rtvia_addr[0];
+	sa_family_t	nl_family;	/* AF_NETLINK */
+	uint8_t			rtvia_addr[0];
 };
 
 /* RTM_CACHEINFO */
 
 struct rta_cacheinfo {
-	uint32_t rta_clntref;
-	uint32_t rta_lastuse;
-	int32_t rta_expires;
-	uint32_t rta_error;
-	uint32_t rta_used;
+	uint32_t	rta_clntref;
+	uint32_t	rta_lastuse;
+	int32_t	rta_expires;
+	uint32_t	rta_error;
+	uint32_t	rta_used;
 
 #define RTNETLINK_HAVE_PEERINFO 1
-	uint32_t rta_id;
-	uint32_t rta_ts;
-	uint32_t rta_tsage;
+	uint32_t	rta_id;
+	uint32_t	rta_ts;
+	uint32_t	rta_tsage;
 };
 
 /* RTM_METRICS --- array of struct rtattr with types of RTAX_* */
 
-// enum {
+//enum {
 //	RTAX_UNSPEC,
 //#define RTAX_UNSPEC RTAX_UNSPEC
 //	RTAX_LOCK,
@@ -495,40 +496,39 @@ struct rta_cacheinfo {
 //
 //#define RTAX_MAX (__RTAX_MAX - 1)
 
-#define RTAX_FEATURE_ECN (1 << 0)
-#define RTAX_FEATURE_SACK (1 << 1)
-#define RTAX_FEATURE_TIMESTAMP (1 << 2)
-#define RTAX_FEATURE_ALLFRAG (1 << 3)
+#define RTAX_FEATURE_ECN	(1 << 0)
+#define RTAX_FEATURE_SACK	(1 << 1)
+#define RTAX_FEATURE_TIMESTAMP	(1 << 2)
+#define RTAX_FEATURE_ALLFRAG	(1 << 3)
 
-#define RTAX_FEATURE_MASK                                                \
-	(RTAX_FEATURE_ECN | RTAX_FEATURE_SACK | RTAX_FEATURE_TIMESTAMP | \
-	    RTAX_FEATURE_ALLFRAG)
+#define RTAX_FEATURE_MASK	(RTAX_FEATURE_ECN | RTAX_FEATURE_SACK | \
+				 RTAX_FEATURE_TIMESTAMP | RTAX_FEATURE_ALLFRAG)
 
 struct rta_session {
-	uint8_t proto;
-	uint8_t pad1;
-	uint16_t pad2;
+	uint8_t	proto;
+	uint8_t	pad1;
+	uint16_t	pad2;
 
 	union {
 		struct {
-			uint16_t sport;
-			uint16_t dport;
+			uint16_t	sport;
+			uint16_t	dport;
 		} ports;
 
 		struct {
-			uint8_t type;
-			uint8_t code;
-			uint16_t ident;
+			uint8_t	type;
+			uint8_t	code;
+			uint16_t	ident;
 		} icmpt;
 
-		uint32_t spi;
+		uint32_t		spi;
 	} u;
 };
 
 struct rta_mfc_stats {
-	uint64_t mfcs_packets;
-	uint64_t mfcs_bytes;
-	uint64_t mfcs_wrong_if;
+	uint64_t	mfcs_packets;
+	uint64_t	mfcs_bytes;
+	uint64_t	mfcs_wrong_if;
 };
 
 /****
@@ -536,7 +536,7 @@ struct rta_mfc_stats {
  ****/
 
 struct rtgenmsg {
-	unsigned char rtgen_family;
+	unsigned char		rtgen_family;
 };
 
 /*****************************************************************
@@ -549,54 +549,61 @@ struct rtgenmsg {
  */
 
 struct ifinfomsg {
-	unsigned char ifi_family;
-	unsigned char __ifi_pad;
-	unsigned short ifi_type; /* ARPHRD_* */
-	int ifi_index;		 /* Link index	*/
-	unsigned ifi_flags;	 /* IFF_* flags	*/
-	unsigned ifi_change;	 /* IFF_* change mask */
+	unsigned char	ifi_family;
+	unsigned char	__ifi_pad;
+	unsigned short	ifi_type;		/* ARPHRD_* */
+	int		ifi_index;		/* Link index	*/
+	unsigned	ifi_flags;		/* IFF_* flags	*/
+	unsigned	ifi_change;		/* IFF_* change mask */
 };
 
 /********************************************************************
- *		prefix information
+ *		prefix information 
  ****/
 
 struct prefixmsg {
-	unsigned char prefix_family;
-	unsigned char prefix_pad1;
-	unsigned short prefix_pad2;
-	int prefix_ifindex;
-	unsigned char prefix_type;
-	unsigned char prefix_len;
-	unsigned char prefix_flags;
-	unsigned char prefix_pad3;
+	unsigned char	prefix_family;
+	unsigned char	prefix_pad1;
+	unsigned short	prefix_pad2;
+	int		prefix_ifindex;
+	unsigned char	prefix_type;
+	unsigned char	prefix_len;
+	unsigned char	prefix_flags;
+	unsigned char	prefix_pad3;
 };
 
-enum { PREFIX_UNSPEC, PREFIX_ADDRESS, PREFIX_CACHEINFO, __PREFIX_MAX };
+enum 
+{
+	PREFIX_UNSPEC,
+	PREFIX_ADDRESS,
+	PREFIX_CACHEINFO,
+	__PREFIX_MAX
+};
 
-#define PREFIX_MAX (__PREFIX_MAX - 1)
+#define PREFIX_MAX	(__PREFIX_MAX - 1)
 
 struct prefix_cacheinfo {
-	uint32_t preferred_time;
-	uint32_t valid_time;
+	uint32_t	preferred_time;
+	uint32_t	valid_time;
 };
+
 
 /*****************************************************************
  *		Traffic control messages.
  ****/
 
 struct tcmsg {
-	unsigned char tcm_family;
-	unsigned char tcm__pad1;
-	unsigned short tcm__pad2;
-	int tcm_ifindex;
-	uint32_t tcm_handle;
-	uint32_t tcm_parent;
+	unsigned char	tcm_family;
+	unsigned char	tcm__pad1;
+	unsigned short	tcm__pad2;
+	int		tcm_ifindex;
+	uint32_t		tcm_handle;
+	uint32_t		tcm_parent;
 /* tcm_block_index is used instead of tcm_parent
  * in case tcm_ifindex == TCM_IFINDEX_MAGIC_BLOCK
  */
 #define tcm_block_index tcm_parent
-	uint32_t tcm_info;
+	uint32_t		tcm_info;
 };
 
 /* For manipulation of filters in shared block, tcm_ifindex is set to
@@ -605,7 +612,8 @@ struct tcmsg {
  */
 #define TCM_IFINDEX_MAGIC_BLOCK (0xFFFFFFFFU)
 
-enum { TCA_UNSPEC,
+enum {
+	TCA_UNSPEC,
 	TCA_KIND,
 	TCA_OPTIONS,
 	TCA_STATS,
@@ -621,143 +629,147 @@ enum { TCA_UNSPEC,
 	TCA_INGRESS_BLOCK,
 	TCA_EGRESS_BLOCK,
 	TCA_DUMP_FLAGS,
-	__TCA_MAX };
+	__TCA_MAX
+};
 
 #define TCA_MAX (__TCA_MAX - 1)
 
-#define TCA_DUMP_FLAGS_TERSE                                \
-	(1 << 0) /* Means that in dump user gets only basic \
-		  * data necessary to identify the objects  \
-		  * (handle, cookie, etc.) and stats.       \
-		  */
+#define TCA_DUMP_FLAGS_TERSE (1 << 0) /* Means that in dump user gets only basic
+				       * data necessary to identify the objects
+				       * (handle, cookie, etc.) and stats.
+				       */
 
-#define TCA_RTA(r) \
-	((struct rtattr *)(((char *)(r)) + NLMSG_ALIGN(sizeof(struct tcmsg))))
-#define TCA_PAYLOAD(n) NLMSG_PAYLOAD(n, sizeof(struct tcmsg))
+#define TCA_RTA(r)  ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct tcmsg))))
+#define TCA_PAYLOAD(n) NLMSG_PAYLOAD(n,sizeof(struct tcmsg))
 
 /********************************************************************
  *		Neighbor Discovery userland options
  ****/
 
 struct nduseroptmsg {
-	unsigned char nduseropt_family;
-	unsigned char nduseropt_pad1;
-	unsigned short nduseropt_opts_len; /* Total length of options */
-	int nduseropt_ifindex;
-	uint8_t nduseropt_icmp_type;
-	uint8_t nduseropt_icmp_code;
-	unsigned short nduseropt_pad2;
-	unsigned int nduseropt_pad3;
+	unsigned char	nduseropt_family;
+	unsigned char	nduseropt_pad1;
+	unsigned short	nduseropt_opts_len;	/* Total length of options */
+	int		nduseropt_ifindex;
+	uint8_t		nduseropt_icmp_type;
+	uint8_t		nduseropt_icmp_code;
+	unsigned short	nduseropt_pad2;
+	unsigned int	nduseropt_pad3;
 	/* Followed by one or more ND options */
 };
 
-enum { NDUSEROPT_UNSPEC, NDUSEROPT_SRCADDR, __NDUSEROPT_MAX };
+enum {
+	NDUSEROPT_UNSPEC,
+	NDUSEROPT_SRCADDR,
+	__NDUSEROPT_MAX
+};
 
-#define NDUSEROPT_MAX (__NDUSEROPT_MAX - 1)
+#define NDUSEROPT_MAX	(__NDUSEROPT_MAX - 1)
 
 #ifndef __KERNEL__
 /* RTnetlink multicast groups - backwards compatibility for userspace */
-#define RTMGRP_LINK 1
-#define RTMGRP_NOTIFY 2
-#define RTMGRP_NEIGH 4
-#define RTMGRP_TC 8
+#define RTMGRP_LINK		1
+#define RTMGRP_NOTIFY		2
+#define RTMGRP_NEIGH		4
+#define RTMGRP_TC		8
 
-#define RTMGRP_IPV4_IFADDR 0x10
-#define RTMGRP_IPV4_MROUTE 0x20
-#define RTMGRP_IPV4_ROUTE 0x40
-#define RTMGRP_IPV4_RULE 0x80
+#define RTMGRP_IPV4_IFADDR	0x10
+#define RTMGRP_IPV4_MROUTE	0x20
+#define RTMGRP_IPV4_ROUTE	0x40
+#define RTMGRP_IPV4_RULE	0x80
 
-#define RTMGRP_IPV6_IFADDR 0x100
-#define RTMGRP_IPV6_MROUTE 0x200
-#define RTMGRP_IPV6_ROUTE 0x400
-#define RTMGRP_IPV6_IFINFO 0x800
+#define RTMGRP_IPV6_IFADDR	0x100
+#define RTMGRP_IPV6_MROUTE	0x200
+#define RTMGRP_IPV6_ROUTE	0x400
+#define RTMGRP_IPV6_IFINFO	0x800
 
-#define RTMGRP_DECnet_IFADDR 0x1000
-#define RTMGRP_DECnet_ROUTE 0x4000
+#define RTMGRP_DECnet_IFADDR    0x1000
+#define RTMGRP_DECnet_ROUTE     0x4000
 
-#define RTMGRP_IPV6_PREFIX 0x20000
+#define RTMGRP_IPV6_PREFIX	0x20000
 #endif
 
 /* RTnetlink multicast groups */
 enum rtnetlink_groups {
 	RTNLGRP_NONE,
-#define RTNLGRP_NONE RTNLGRP_NONE
+#define RTNLGRP_NONE		RTNLGRP_NONE
 	RTNLGRP_LINK,
-#define RTNLGRP_LINK RTNLGRP_LINK
+#define RTNLGRP_LINK		RTNLGRP_LINK
 	RTNLGRP_NOTIFY,
-#define RTNLGRP_NOTIFY RTNLGRP_NOTIFY
+#define RTNLGRP_NOTIFY		RTNLGRP_NOTIFY
 	RTNLGRP_NEIGH,
-#define RTNLGRP_NEIGH RTNLGRP_NEIGH
+#define RTNLGRP_NEIGH		RTNLGRP_NEIGH
 	RTNLGRP_TC,
-#define RTNLGRP_TC RTNLGRP_TC
+#define RTNLGRP_TC		RTNLGRP_TC
 	RTNLGRP_IPV4_IFADDR,
-#define RTNLGRP_IPV4_IFADDR RTNLGRP_IPV4_IFADDR
+#define RTNLGRP_IPV4_IFADDR	RTNLGRP_IPV4_IFADDR
 	RTNLGRP_IPV4_MROUTE,
-#define RTNLGRP_IPV4_MROUTE RTNLGRP_IPV4_MROUTE
+#define	RTNLGRP_IPV4_MROUTE	RTNLGRP_IPV4_MROUTE
 	RTNLGRP_IPV4_ROUTE,
-#define RTNLGRP_IPV4_ROUTE RTNLGRP_IPV4_ROUTE
+#define RTNLGRP_IPV4_ROUTE	RTNLGRP_IPV4_ROUTE
 	RTNLGRP_IPV4_RULE,
-#define RTNLGRP_IPV4_RULE RTNLGRP_IPV4_RULE
+#define RTNLGRP_IPV4_RULE	RTNLGRP_IPV4_RULE
 	RTNLGRP_IPV6_IFADDR,
-#define RTNLGRP_IPV6_IFADDR RTNLGRP_IPV6_IFADDR
+#define RTNLGRP_IPV6_IFADDR	RTNLGRP_IPV6_IFADDR
 	RTNLGRP_IPV6_MROUTE,
-#define RTNLGRP_IPV6_MROUTE RTNLGRP_IPV6_MROUTE
+#define RTNLGRP_IPV6_MROUTE	RTNLGRP_IPV6_MROUTE
 	RTNLGRP_IPV6_ROUTE,
-#define RTNLGRP_IPV6_ROUTE RTNLGRP_IPV6_ROUTE
+#define RTNLGRP_IPV6_ROUTE	RTNLGRP_IPV6_ROUTE
 	RTNLGRP_IPV6_IFINFO,
-#define RTNLGRP_IPV6_IFINFO RTNLGRP_IPV6_IFINFO
+#define RTNLGRP_IPV6_IFINFO	RTNLGRP_IPV6_IFINFO
 	RTNLGRP_DECnet_IFADDR,
-#define RTNLGRP_DECnet_IFADDR RTNLGRP_DECnet_IFADDR
+#define RTNLGRP_DECnet_IFADDR	RTNLGRP_DECnet_IFADDR
 	RTNLGRP_NOP2,
 	RTNLGRP_DECnet_ROUTE,
-#define RTNLGRP_DECnet_ROUTE RTNLGRP_DECnet_ROUTE
+#define RTNLGRP_DECnet_ROUTE	RTNLGRP_DECnet_ROUTE
 	RTNLGRP_DECnet_RULE,
-#define RTNLGRP_DECnet_RULE RTNLGRP_DECnet_RULE
+#define RTNLGRP_DECnet_RULE	RTNLGRP_DECnet_RULE
 	RTNLGRP_NOP4,
 	RTNLGRP_IPV6_PREFIX,
-#define RTNLGRP_IPV6_PREFIX RTNLGRP_IPV6_PREFIX
+#define RTNLGRP_IPV6_PREFIX	RTNLGRP_IPV6_PREFIX
 	RTNLGRP_IPV6_RULE,
-#define RTNLGRP_IPV6_RULE RTNLGRP_IPV6_RULE
+#define RTNLGRP_IPV6_RULE	RTNLGRP_IPV6_RULE
 	RTNLGRP_ND_USEROPT,
-#define RTNLGRP_ND_USEROPT RTNLGRP_ND_USEROPT
+#define RTNLGRP_ND_USEROPT	RTNLGRP_ND_USEROPT
 	RTNLGRP_PHONET_IFADDR,
-#define RTNLGRP_PHONET_IFADDR RTNLGRP_PHONET_IFADDR
+#define RTNLGRP_PHONET_IFADDR	RTNLGRP_PHONET_IFADDR
 	RTNLGRP_PHONET_ROUTE,
-#define RTNLGRP_PHONET_ROUTE RTNLGRP_PHONET_ROUTE
+#define RTNLGRP_PHONET_ROUTE	RTNLGRP_PHONET_ROUTE
 	RTNLGRP_DCB,
-#define RTNLGRP_DCB RTNLGRP_DCB
+#define RTNLGRP_DCB		RTNLGRP_DCB
 	RTNLGRP_IPV4_NETCONF,
-#define RTNLGRP_IPV4_NETCONF RTNLGRP_IPV4_NETCONF
+#define RTNLGRP_IPV4_NETCONF	RTNLGRP_IPV4_NETCONF
 	RTNLGRP_IPV6_NETCONF,
-#define RTNLGRP_IPV6_NETCONF RTNLGRP_IPV6_NETCONF
+#define RTNLGRP_IPV6_NETCONF	RTNLGRP_IPV6_NETCONF
 	RTNLGRP_MDB,
-#define RTNLGRP_MDB RTNLGRP_MDB
+#define RTNLGRP_MDB		RTNLGRP_MDB
 	RTNLGRP_MPLS_ROUTE,
-#define RTNLGRP_MPLS_ROUTE RTNLGRP_MPLS_ROUTE
+#define RTNLGRP_MPLS_ROUTE	RTNLGRP_MPLS_ROUTE
 	RTNLGRP_NSID,
-#define RTNLGRP_NSID RTNLGRP_NSID
+#define RTNLGRP_NSID		RTNLGRP_NSID
 	RTNLGRP_MPLS_NETCONF,
-#define RTNLGRP_MPLS_NETCONF RTNLGRP_MPLS_NETCONF
+#define RTNLGRP_MPLS_NETCONF	RTNLGRP_MPLS_NETCONF
 	RTNLGRP_IPV4_MROUTE_R,
-#define RTNLGRP_IPV4_MROUTE_R RTNLGRP_IPV4_MROUTE_R
+#define RTNLGRP_IPV4_MROUTE_R	RTNLGRP_IPV4_MROUTE_R
 	RTNLGRP_IPV6_MROUTE_R,
-#define RTNLGRP_IPV6_MROUTE_R RTNLGRP_IPV6_MROUTE_R
+#define RTNLGRP_IPV6_MROUTE_R	RTNLGRP_IPV6_MROUTE_R
 	RTNLGRP_NEXTHOP,
-#define RTNLGRP_NEXTHOP RTNLGRP_NEXTHOP
+#define RTNLGRP_NEXTHOP		RTNLGRP_NEXTHOP
 	RTNLGRP_BRVLAN,
-#define RTNLGRP_BRVLAN RTNLGRP_BRVLAN
+#define RTNLGRP_BRVLAN		RTNLGRP_BRVLAN
 	__RTNLGRP_MAX
 };
-#define RTNLGRP_MAX (__RTNLGRP_MAX - 1)
+#define RTNLGRP_MAX	(__RTNLGRP_MAX - 1)
 
 /* TC action piece */
 struct tcamsg {
-	unsigned char tca_family;
-	unsigned char tca__pad1;
-	unsigned short tca__pad2;
+	unsigned char	tca_family;
+	unsigned char	tca__pad1;
+	unsigned short	tca__pad2;
 };
 
-enum { TCA_ROOT_UNSPEC,
+enum {
+	TCA_ROOT_UNSPEC,
 	TCA_ROOT_TAB,
 #define TCA_ACT_TAB TCA_ROOT_TAB
 #define TCAA_MAX TCA_ROOT_TAB
@@ -765,12 +777,11 @@ enum { TCA_ROOT_UNSPEC,
 	TCA_ROOT_COUNT,
 	TCA_ROOT_TIME_DELTA, /* in msecs */
 	__TCA_ROOT_MAX,
-#define TCA_ROOT_MAX (__TCA_ROOT_MAX - 1)
+#define	TCA_ROOT_MAX (__TCA_ROOT_MAX - 1)
 };
 
-#define TA_RTA(r) \
-	((struct rtattr *)(((char *)(r)) + NLMSG_ALIGN(sizeof(struct tcamsg))))
-#define TA_PAYLOAD(n) NLMSG_PAYLOAD(n, sizeof(struct tcamsg))
+#define TA_RTA(r)  ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct tcamsg))))
+#define TA_PAYLOAD(n) NLMSG_PAYLOAD(n,sizeof(struct tcamsg))
 /* tcamsg flags stored in attribute TCA_ROOT_FLAGS
  *
  * TCA_ACT_FLAG_LARGE_DUMP_ON user->kernel to request for larger than
@@ -782,29 +793,30 @@ enum { TCA_ROOT_UNSPEC,
  * includes essential action info (kind, index, etc.)
  *
  */
-#define TCA_FLAG_LARGE_DUMP_ON (1 << 0)
-#define TCA_ACT_FLAG_LARGE_DUMP_ON TCA_FLAG_LARGE_DUMP_ON
-#define TCA_ACT_FLAG_TERSE_DUMP (1 << 1)
+#define TCA_FLAG_LARGE_DUMP_ON		(1 << 0)
+#define TCA_ACT_FLAG_LARGE_DUMP_ON	TCA_FLAG_LARGE_DUMP_ON
+#define TCA_ACT_FLAG_TERSE_DUMP		(1 << 1)
 
 /* New extended info filters for IFLA_EXT_MASK */
-#define RTEXT_FILTER_VF (1 << 0)
-#define RTEXT_FILTER_BRVLAN (1 << 1)
-#define RTEXT_FILTER_BRVLAN_COMPRESSED (1 << 2)
-#define RTEXT_FILTER_SKIP_STATS (1 << 3)
-#define RTEXT_FILTER_MRP (1 << 4)
-#define RTEXT_FILTER_CFM_CONFIG (1 << 5)
-#define RTEXT_FILTER_CFM_STATUS (1 << 6)
+#define RTEXT_FILTER_VF		(1 << 0)
+#define RTEXT_FILTER_BRVLAN	(1 << 1)
+#define RTEXT_FILTER_BRVLAN_COMPRESSED	(1 << 2)
+#define	RTEXT_FILTER_SKIP_STATS	(1 << 3)
+#define RTEXT_FILTER_MRP	(1 << 4)
+#define RTEXT_FILTER_CFM_CONFIG	(1 << 5)
+#define RTEXT_FILTER_CFM_STATUS	(1 << 6)
 
 /* End of information exported to user level */
 
-// START OF IF_ADDR SECTION
+//START OF IF_ADDR SECTION
+
 
 struct ifaddrmsg {
-	uint8_t ifa_family;
-	uint8_t ifa_prefixlen; /* The prefix length		*/
-	uint8_t ifa_flags;     /* Flags			*/
-	uint8_t ifa_scope;     /* Address scope		*/
-	uint32_t ifa_index;    /* Link index			*/
+	uint8_t		ifa_family;
+	uint8_t		ifa_prefixlen;	/* The prefix length		*/
+	uint8_t		ifa_flags;	/* Flags			*/
+	uint8_t		ifa_scope;	/* Address scope		*/
+	uint32_t		ifa_index;	/* Link index			*/
 };
 
 /*
@@ -817,7 +829,8 @@ struct ifaddrmsg {
  * IFA_FLAGS is a u32 attribute that extends the u8 field ifa_flags.
  * If present, the value from struct ifaddrmsg will be ignored.
  */
-enum { IFA_UNSPEC,
+enum {
+	IFA_UNSPEC,
 	IFA_ADDRESS,
 	IFA_LOCAL,
 	IFA_LABEL,
@@ -826,7 +839,7 @@ enum { IFA_UNSPEC,
 	IFA_CACHEINFO,
 	IFA_MULTICAST,
 	IFA_FLAGS,
-	IFA_RT_PRIORITY, /* u32, priority/metric for prefix route */
+	IFA_RT_PRIORITY,  /* u32, priority/metric for prefix route */
 	IFA_TARGET_NETNSID,
 	__IFA_MAX,
 };
@@ -834,28 +847,29 @@ enum { IFA_UNSPEC,
 #define IFA_MAX (__IFA_MAX - 1)
 
 /* ifa_flags */
-#define IFA_F_SECONDARY 0x01
-#define IFA_F_TEMPORARY IFA_F_SECONDARY
+#define IFA_F_SECONDARY		0x01
+#define IFA_F_TEMPORARY		IFA_F_SECONDARY
 
-#define IFA_F_NODAD 0x02
-#define IFA_F_OPTIMISTIC 0x04
-#define IFA_F_DADFAILED 0x08
-#define IFA_F_HOMEADDRESS 0x10
-#define IFA_F_DEPRECATED 0x20
-#define IFA_F_TENTATIVE 0x40
-#define IFA_F_PERMANENT 0x80
-#define IFA_F_MANAGETEMPADDR 0x100
-#define IFA_F_NOPREFIXROUTE 0x200
-#define IFA_F_MCAUTOJOIN 0x400
-#define IFA_F_STABLE_PRIVACY 0x800
+#define	IFA_F_NODAD		0x02
+#define IFA_F_OPTIMISTIC	0x04
+#define IFA_F_DADFAILED		0x08
+#define	IFA_F_HOMEADDRESS	0x10
+#define IFA_F_DEPRECATED	0x20
+#define IFA_F_TENTATIVE		0x40
+#define IFA_F_PERMANENT		0x80
+#define IFA_F_MANAGETEMPADDR	0x100
+#define IFA_F_NOPREFIXROUTE	0x200
+#define IFA_F_MCAUTOJOIN	0x400
+#define IFA_F_STABLE_PRIVACY	0x800
 
 struct ifa_cacheinfo {
-	uint32_t ifa_prefered;
-	uint32_t ifa_valid;
-	uint32_t cstamp; /* created timestamp, hundredths of seconds */
-	uint32_t tstamp; /* updated timestamp, hundredths of seconds */
+	uint32_t	ifa_prefered;
+	uint32_t	ifa_valid;
+	uint32_t	cstamp; /* created timestamp, hundredths of seconds */
+	uint32_t	tstamp; /* updated timestamp, hundredths of seconds */
 };
 
-// END OF IF_ADDR SECTION
+//END OF IF_ADDR SECTION
+
 
 #endif /* _UAPI__LINUX_RTNETLINK_H */
