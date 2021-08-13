@@ -6,6 +6,7 @@
 #include <net/if_types.h>
 #include <net/if_var.h>
 #include <linux/netlink.h>
+#include <linux/if_link.h>
 #include <net/route.h>
 #include <netinet/in.h>
 
@@ -389,66 +390,7 @@ enum rt_class_t {
 #define RTM_RTA(r)  ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct rtmsg))))
 #define RTM_PAYLOAD(n) NLMSG_PAYLOAD(n,sizeof(struct rtmsg))
 
-/* RTM_MULTIPATH --- array of struct rtnexthop.
- *
- * "struct rtnexthop" describes all necessary nexthop information,
- * i.e. parameters of path to a destination via this nexthop.
- *
- * At the moment it is impossible to set different prefsrc, mtu, window
- * and rtt for different paths from multipath.
- */
 
-struct rtnexthop {
-	unsigned short		rtnh_len;
-	unsigned char		rtnh_flags;
-	unsigned char		rtnh_hops;
-	int			rtnh_ifindex;
-};
-
-/* rtnh_flags */
-
-#define RTNH_F_DEAD		1	/* Nexthop is dead (used by multipath)	*/
-#define RTNH_F_PERVASIVE	2	/* Do recursive gateway lookup	*/
-#define RTNH_F_ONLINK		4	/* Gateway is forced on link	*/
-#define RTNH_F_OFFLOAD		8	/* Nexthop is offloaded */
-#define RTNH_F_LINKDOWN		16	/* carrier-down on nexthop */
-#define RTNH_F_UNRESOLVED	32	/* The entry is unresolved (ipmr) */
-#define RTNH_F_TRAP		64	/* Nexthop is trapping packets */
-
-#define RTNH_COMPARE_MASK	(RTNH_F_DEAD | RTNH_F_LINKDOWN | \
-				 RTNH_F_OFFLOAD | RTNH_F_TRAP)
-
-/* Macros to handle hexthops */
-
-#define RTNH_ALIGNTO	4
-#define RTNH_ALIGN(len) ( ((len)+RTNH_ALIGNTO-1) & ~(RTNH_ALIGNTO-1) )
-#define RTNH_OK(rtnh,len) ((rtnh)->rtnh_len >= sizeof(struct rtnexthop) && \
-			   ((int)(rtnh)->rtnh_len) <= (len))
-#define RTNH_NEXT(rtnh)	((struct rtnexthop*)(((char*)(rtnh)) + RTNH_ALIGN((rtnh)->rtnh_len)))
-#define RTNH_LENGTH(len) (RTNH_ALIGN(sizeof(struct rtnexthop)) + (len))
-#define RTNH_SPACE(len)	RTNH_ALIGN(RTNH_LENGTH(len))
-#define RTNH_DATA(rtnh)   ((struct rtattr*)(((char*)(rtnh)) + RTNH_LENGTH(0)))
-
-/* RTA_VIA */
-struct rtvia {
-	sa_family_t	nl_family;	/* AF_NETLINK */
-	uint8_t			rtvia_addr[0];
-};
-
-/* RTM_CACHEINFO */
-
-struct rta_cacheinfo {
-	uint32_t	rta_clntref;
-	uint32_t	rta_lastuse;
-	int32_t	rta_expires;
-	uint32_t	rta_error;
-	uint32_t	rta_used;
-
-#define RTNETLINK_HAVE_PEERINFO 1
-	uint32_t	rta_id;
-	uint32_t	rta_ts;
-	uint32_t	rta_tsage;
-};
 
 /* RTM_METRICS --- array of struct rtattr with types of RTAX_* */
 
@@ -502,36 +444,6 @@ struct rta_cacheinfo {
 #define RTAX_FEATURE_MASK	(RTAX_FEATURE_ECN | RTAX_FEATURE_SACK | \
 				 RTAX_FEATURE_TIMESTAMP | RTAX_FEATURE_ALLFRAG)
 
-struct rta_session {
-	uint8_t	proto;
-	uint8_t	pad1;
-	uint16_t	pad2;
-
-	union {
-		struct {
-			uint16_t	sport;
-			uint16_t	dport;
-		} ports;
-
-		struct {
-			uint8_t	type;
-			uint8_t	code;
-			uint16_t	ident;
-		} icmpt;
-
-		uint32_t		spi;
-	} u;
-};
-
-struct rta_mfc_stats {
-	uint64_t	mfcs_packets;
-	uint64_t	mfcs_bytes;
-	uint64_t	mfcs_wrong_if;
-};
-
-/****
- *		General form of address family dependent message.
- ****/
 
 struct rtgenmsg {
 	unsigned char		rtgen_family;
@@ -585,84 +497,6 @@ struct prefix_cacheinfo {
 	uint32_t	valid_time;
 };
 
-
-/*****************************************************************
- *		Traffic control messages.
- ****/
-
-struct tcmsg {
-	unsigned char	tcm_family;
-	unsigned char	tcm__pad1;
-	unsigned short	tcm__pad2;
-	int		tcm_ifindex;
-	uint32_t		tcm_handle;
-	uint32_t		tcm_parent;
-/* tcm_block_index is used instead of tcm_parent
- * in case tcm_ifindex == TCM_IFINDEX_MAGIC_BLOCK
- */
-#define tcm_block_index tcm_parent
-	uint32_t		tcm_info;
-};
-
-/* For manipulation of filters in shared block, tcm_ifindex is set to
- * TCM_IFINDEX_MAGIC_BLOCK, and tcm_parent is aliased to tcm_block_index
- * which is the block index.
- */
-#define TCM_IFINDEX_MAGIC_BLOCK (0xFFFFFFFFU)
-
-enum {
-	TCA_UNSPEC,
-	TCA_KIND,
-	TCA_OPTIONS,
-	TCA_STATS,
-	TCA_XSTATS,
-	TCA_RATE,
-	TCA_FCNT,
-	TCA_STATS2,
-	TCA_STAB,
-	TCA_PAD,
-	TCA_DUMP_INVISIBLE,
-	TCA_CHAIN,
-	TCA_HW_OFFLOAD,
-	TCA_INGRESS_BLOCK,
-	TCA_EGRESS_BLOCK,
-	TCA_DUMP_FLAGS,
-	__TCA_MAX
-};
-
-#define TCA_MAX (__TCA_MAX - 1)
-
-#define TCA_DUMP_FLAGS_TERSE (1 << 0) /* Means that in dump user gets only basic
-				       * data necessary to identify the objects
-				       * (handle, cookie, etc.) and stats.
-				       */
-
-#define TCA_RTA(r)  ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct tcmsg))))
-#define TCA_PAYLOAD(n) NLMSG_PAYLOAD(n,sizeof(struct tcmsg))
-
-/********************************************************************
- *		Neighbor Discovery userland options
- ****/
-
-struct nduseroptmsg {
-	unsigned char	nduseropt_family;
-	unsigned char	nduseropt_pad1;
-	unsigned short	nduseropt_opts_len;	/* Total length of options */
-	int		nduseropt_ifindex;
-	uint8_t		nduseropt_icmp_type;
-	uint8_t		nduseropt_icmp_code;
-	unsigned short	nduseropt_pad2;
-	unsigned int	nduseropt_pad3;
-	/* Followed by one or more ND options */
-};
-
-enum {
-	NDUSEROPT_UNSPEC,
-	NDUSEROPT_SRCADDR,
-	__NDUSEROPT_MAX
-};
-
-#define NDUSEROPT_MAX	(__NDUSEROPT_MAX - 1)
 
 #ifndef __KERNEL__
 /* RTnetlink multicast groups - backwards compatibility for userspace */
@@ -758,53 +592,6 @@ enum rtnetlink_groups {
 	__RTNLGRP_MAX
 };
 #define RTNLGRP_MAX	(__RTNLGRP_MAX - 1)
-
-/* TC action piece */
-struct tcamsg {
-	unsigned char	tca_family;
-	unsigned char	tca__pad1;
-	unsigned short	tca__pad2;
-};
-
-enum {
-	TCA_ROOT_UNSPEC,
-	TCA_ROOT_TAB,
-#define TCA_ACT_TAB TCA_ROOT_TAB
-#define TCAA_MAX TCA_ROOT_TAB
-	TCA_ROOT_FLAGS,
-	TCA_ROOT_COUNT,
-	TCA_ROOT_TIME_DELTA, /* in msecs */
-	__TCA_ROOT_MAX,
-#define	TCA_ROOT_MAX (__TCA_ROOT_MAX - 1)
-};
-
-#define TA_RTA(r)  ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct tcamsg))))
-#define TA_PAYLOAD(n) NLMSG_PAYLOAD(n,sizeof(struct tcamsg))
-/* tcamsg flags stored in attribute TCA_ROOT_FLAGS
- *
- * TCA_ACT_FLAG_LARGE_DUMP_ON user->kernel to request for larger than
- * TCA_ACT_MAX_PRIO actions in a dump. All dump responses will contain the
- * number of actions being dumped stored in for user app's consumption in
- * TCA_ROOT_COUNT
- *
- * TCA_ACT_FLAG_TERSE_DUMP user->kernel to request terse (brief) dump that only
- * includes essential action info (kind, index, etc.)
- *
- */
-#define TCA_FLAG_LARGE_DUMP_ON		(1 << 0)
-#define TCA_ACT_FLAG_LARGE_DUMP_ON	TCA_FLAG_LARGE_DUMP_ON
-#define TCA_ACT_FLAG_TERSE_DUMP		(1 << 1)
-
-/* New extended info filters for IFLA_EXT_MASK */
-#define RTEXT_FILTER_VF		(1 << 0)
-#define RTEXT_FILTER_BRVLAN	(1 << 1)
-#define RTEXT_FILTER_BRVLAN_COMPRESSED	(1 << 2)
-#define	RTEXT_FILTER_SKIP_STATS	(1 << 3)
-#define RTEXT_FILTER_MRP	(1 << 4)
-#define RTEXT_FILTER_CFM_CONFIG	(1 << 5)
-#define RTEXT_FILTER_CFM_STATUS	(1 << 6)
-
-/* End of information exported to user level */
 
 //START OF IF_ADDR SECTION
 
