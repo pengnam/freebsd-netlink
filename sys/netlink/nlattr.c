@@ -35,10 +35,6 @@ int nla_ok(const struct nlattr *nla, int remaining)
 		nla->nla_len <= remaining;
 }
 
-/**
- * Returns the next netlink attribute in the attribute stream and
- * decrements remaining by the size of the current attribute.
- */
 struct nlattr *nla_next(struct nlattr *nla, int *remaining)
 {
 	unsigned int totlen = NLA_ALIGN(nla->nla_len);
@@ -266,97 +262,5 @@ nla_put_string(struct mbuf *m, int attrtype, const char *str)
 
 
 
-
-
-	static inline uint8_t
-nla_get_u8( struct nlattr *nla)
-{
-	return *( uint8_t *) nla_data(nla);
-}
-
-	static inline uint16_t
-nla_get_u16( struct nlattr *nla)
-{
-	return *( uint16_t *) nla_data(nla);
-}
-	static inline uint32_t
-nla_get_u32( struct nlattr *nla)
-{
-	return *( uint32_t *) nla_data(nla);
-}
-
-	static inline uint64_t 
-nla_get_u64( struct nlattr *nla)
-{
-	return *( uint64_t *) nla_data(nla);
-}
-	static inline int8_t
-nla_get_s8( struct nlattr *nla)
-{
-	return *( int8_t *) nla_data(nla);
-}
-
-	static inline int16_t
-nla_get_s16( struct nlattr *nla)
-{
-	return *( int16_t *) nla_data(nla);
-}
-	static inline int32_t
-nla_get_s32( struct nlattr *nla)
-{
-	return *( int32_t *) nla_data(nla);
-}
-
-	static inline int64_t 
-nla_get_s64( struct nlattr *nla)
-{
-	return *( int64_t *) nla_data(nla);
-}
-
-
-static inline int
-nla_get_flag(struct nlattr *nla) {
-	return !!nla;
-}
-
-	static int 
-nla_memcpy(void *dest, struct nlattr *src, int count)
-{
-	int minlen = min(count, nla_len(src));
-
-	memcpy(dest, nla_data(src), minlen);
-	if (count > minlen)
-		memset((char*)dest + minlen, 0, count - minlen);
-
-	return minlen;
-}
-
-
-static int
-nla_strcpy(char *dst, struct nlattr *nla, size_t dstsize) {
-
-	size_t srclen = nla_len(nla);
-	char *src = nla_data(nla);
-	ssize_t ret;
-	size_t len;
-
-
-	if (srclen > 0 && src[srclen - 1] == '\0')
-		srclen--;
-
-	if (srclen >= dstsize) {
-		len = dstsize - 1;
-		ret = E2BIG;
-	} else {
-		len = srclen;
-		ret = len;
-	}
-
-	memcpy(dst, src, len);
-	/* Zero pad end of dst. */
-	memset(dst + len, 0, dstsize - len);
-
-	return ret;
-}
 
 

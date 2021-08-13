@@ -111,7 +111,7 @@ genl_receive_message(void* data, struct socket *so)
 		D("Family not found");
 		return ENOENT;
 	}
-	//TODO: Check max attribute? 
+	//TODO: Check max attribute
 	if (nlmsg -> nlmsg_len < (NLMSG_HDRLEN + GENL_HDRLEN)) {
 		return EBADMSG;
 	}

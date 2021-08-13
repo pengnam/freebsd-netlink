@@ -55,17 +55,11 @@ MALLOC_DEFINE(M_RTNETLINK, "rtnetlink", "Memory used for rtnetlink packets");
 
 
 
- #ifndef _SOCKADDR_UNION_DEFINED
- #define _SOCKADDR_UNION_DEFINED
- /*
-  * The union of all possible address formats we handle.
-  */
  union sockaddr_union {
      struct sockaddr     sa;
      struct sockaddr_in  sin;
      struct sockaddr_in6 sin6;
  };
- #endif /* _SOCKADDR_UNION_DEFINED */
 
 
 static struct nhop_object *
@@ -160,7 +154,7 @@ get_rtflag_from_nla_type(int nla_type) {
 
 
 static int
-rt_xaddrs(struct nlattr *head, int len, struct rt_addrinfo *rtinfo)
+parse_rtmsg_nlattr(struct nlattr *head, int len, struct rt_addrinfo *rtinfo)
 {
 	struct sockaddr * sa;
     struct sockaddr_in *sai;
@@ -215,6 +209,7 @@ rt_xaddrs(struct nlattr *head, int len, struct rt_addrinfo *rtinfo)
 }
 
 
+//TODO: Fix parse_netmask
 static int
 parse_netmask(struct rtmsg *rtm, struct rt_addrinfo *info) {
 
@@ -229,16 +224,8 @@ parse_netmask(struct rtmsg *rtm, struct rt_addrinfo *info) {
                 /*Find the equivalent mask*/
                 num_digits = 32 - num_digits;
                 uint32_t mask = ~((1 << (num_digits)) - 1);
-		uint32_t holder = mask;
-                D("mask: %d", mask);
-		for (int i = 31; i >= 0;  i -= 1) {
-			printf("%i", holder & 0x01);
-			holder = holder >> 1;
-
-
-		}
-		D("end");
                 mask_sa->sin_addr.s_addr = mask;
+		//TODO: Revert back 
                 //info->rti_info[RTAX_NETMASK] = (struct sockaddr * ) mask_sa;
                 //info->rti_addrs |= RTA_NETMASK;
                 info->rti_flags|= RTF_HOST;
@@ -254,7 +241,7 @@ static int
 fill_addrinfo(struct rtmsg *rtm, int len, struct rt_addrinfo *info)
 {
 
-    if (rt_xaddrs((struct nlattr *)(rtm + 1), len - sizeof(struct rtmsg), info))
+    if (parse_rtmsg_nlattr((struct nlattr *)(rtm + 1), len - sizeof(struct rtmsg), info))
         return (EINVAL);
     if (parse_netmask(rtm, info))
 	    return (EINVAL);
@@ -318,7 +305,7 @@ dump_rc(uint32_t portid, uint32_t seq, struct rt_addrinfo *info, struct rib_cmd_
 	export_rtaddrs(rc->rc_rt, &sa_dst.sa, &sa_mask.sa);
 
 	// 1. nlmsg
-	// TODO: I assume its always NEWROUTE https://elixir.bootlin.com/linux/v5.13-rc4/source/net/ipv4/fib_frontend.c#L965
+	// TODO: Assumed to always be NEWROUTE https://elixir.bootlin.com/linux/v5.13-rc4/source/net/ipv4/fib_frontend.c#L965
 	nlm = nlmsg_put(m, portid, seq, RTM_NEWROUTE, payload, flags);
 	rtm = nlmsg_data(nlm);
 	// 2. rtmsg
@@ -403,7 +390,6 @@ rtnl_receive_message(void* data, struct socket *so)
 		break;
 
 	case RTM_GETROUTE:
-		D("Check: %p", (info.rti_info[RTAX_DST]));
 		error = handle_rtm_get(&info, fibnum, info.rti_addrs, info.rti_flags, &rc);
 		if (error != 0)
 			senderr(error);
