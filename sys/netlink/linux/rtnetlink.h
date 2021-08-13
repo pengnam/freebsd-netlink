@@ -1,4 +1,3 @@
-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
 #ifndef _UAPI__LINUX_RTNETLINK_H
 #define _UAPI__LINUX_RTNETLINK_H
 
@@ -7,7 +6,6 @@
 #include <net/if_types.h>
 #include <net/if_var.h>
 #include <linux/netlink.h>
-#include <linux/if_link.h> /*copy of linux/if_link.h */
 #include <net/route.h>
 #include <netinet/in.h>
 
