@@ -283,7 +283,7 @@ export_rtaddrs(const struct rtentry *rt, struct sockaddr *dst,
 
 
 static struct mbuf *
-dump_rc(uint32_t portid, uint32_t seq, struct rt_addrinfo *info, struct rib_cmd_info *rc, struct nhop_object* nh) {
+dump_rc(uint32_t tableid, uint32_t portid, uint32_t seq, struct rt_addrinfo *info, struct rib_cmd_info *rc, struct nhop_object* nh) {
 
 
 	struct nlmsghdr* nlm; 
@@ -313,6 +313,7 @@ dump_rc(uint32_t portid, uint32_t seq, struct rt_addrinfo *info, struct rib_cmd_
 	//TODO: Concert mask to dst_len
 	rtm->rtm_dst_len = 32;
 	rtm->rtm_src_len = 0;
+	rtm->rtm_table = tableid;
 	//TODO: Figure out flags
 	//
 	//TODO: Handle put errors
@@ -401,7 +402,7 @@ rtnl_receive_message(void* data, struct socket *so)
 		nh = rc.rc_nh_new;
 		D("here");
 
-		m  = dump_rc(rp->portid, hdr->nlmsg_seq, &info, &rc, nh);
+		m  = dump_rc(fibnum, rp->portid, hdr->nlmsg_seq, &info, &rc, nh);
 
 		_M_NLPROTO(m) = rp->rp.rcb_proto.sp_protocol;
 
