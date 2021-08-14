@@ -237,9 +237,6 @@ static const uint8_t nla_attr_minlen[NLA_TYPE_MAX+1] = {
 	[NLA_S32]	= sizeof(int32_t),
 	[NLA_S64]	= sizeof(int64_t),
 };
-#define NLA_ALIGNTO		4
-#define NLA_ALIGN(len)		(((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
-#define NLA_HDRLEN		((int) NLA_ALIGN(sizeof(struct nlattr)))
 
 
 

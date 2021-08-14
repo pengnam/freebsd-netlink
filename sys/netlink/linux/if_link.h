@@ -2,10 +2,10 @@
 #define _UAPI_LINUX_IF_LINK_H
 
 #include <sys/types.h>
+
 #include <linux/netlink.h>
 
-enum {
-	IFLA_UNSPEC,
+enum { IFLA_UNSPEC,
 	IFLA_ADDRESS,
 	IFLA_BROADCAST,
 	IFLA_IFNAME,
@@ -19,9 +19,9 @@ enum {
 #define IFLA_PRIORITY IFLA_PRIORITY
 	IFLA_MASTER,
 #define IFLA_MASTER IFLA_MASTER
-	IFLA_WIRELESS,		/* Wireless Extension event - see wireless.h */
+	IFLA_WIRELESS, /* Wireless Extension event - see wireless.h */
 #define IFLA_WIRELESS IFLA_WIRELESS
-	IFLA_PROTINFO,		/* Protocol specific information for a link */
+	IFLA_PROTINFO, /* Protocol specific information for a link */
 #define IFLA_PROTINFO IFLA_PROTINFO
 	IFLA_TXQLEN,
 #define IFLA_TXQLEN IFLA_TXQLEN
@@ -35,16 +35,16 @@ enum {
 #define IFLA_LINKINFO IFLA_LINKINFO
 	IFLA_NET_NS_PID,
 	IFLA_IFALIAS,
-	IFLA_NUM_VF,		/* Number of VFs if device is SR-IOV PF */
+	IFLA_NUM_VF, /* Number of VFs if device is SR-IOV PF */
 	IFLA_VFINFO_LIST,
 	IFLA_STATS64,
 	IFLA_VF_PORTS,
 	IFLA_PORT_SELF,
 	IFLA_AF_SPEC,
-	IFLA_GROUP,		/* Group the device belongs to */
+	IFLA_GROUP, /* Group the device belongs to */
 	IFLA_NET_NS_FD,
-	IFLA_EXT_MASK,		/* Extended info mask, VFs, etc */
-	IFLA_PROMISCUITY,	/* Promiscuity count: > 0 means acts PROMISC */
+	IFLA_EXT_MASK,	  /* Extended info mask, VFs, etc */
+	IFLA_PROMISCUITY, /* Promiscuity count: > 0 means acts PROMISC */
 #define IFLA_PROMISCUITY IFLA_PROMISCUITY
 	IFLA_NUM_TX_QUEUES,
 	IFLA_NUM_RX_QUEUES,
@@ -72,9 +72,7 @@ enum {
 	IFLA_ALT_IFNAME, /* Alternative ifname */
 	IFLA_PERM_ADDRESS,
 	IFLA_PROTO_DOWN_REASON,
-	__IFLA_MAX
-};
-
+	__IFLA_MAX };
 
 #define IFLA_MAX (__IFLA_MAX - 1)
 
