@@ -27,22 +27,14 @@
 //TODO: Hack
 #define INET 1
 #include <sys/param.h>
-#include <sys/jail.h>
 #include <sys/kernel.h>
-#include <sys/domain.h>
-#include <sys/lock.h>
 #include <sys/malloc.h>
 #include <sys/mbuf.h>
-#include <sys/priv.h>
 #include <sys/proc.h>
 #include <sys/protosw.h>
 #include <sys/rmlock.h>
 #include <sys/rwlock.h>
-#include <sys/signalvar.h>
 #include <sys/socket.h>
-#include <sys/socketvar.h>
-#include <sys/sysctl.h>
-#include <sys/systm.h>
 
 #include <net/if.h>
 #include <net/if_var.h>
@@ -50,7 +42,6 @@
 #include <net/if_llatbl.h>
 #include <net/if_types.h>
 #include <net/netisr.h>
-#include <net/raw_cb.h>
 #include <net/route.h>
 #include <net/route/route_ctl.h>
 #include <net/vnet.h>

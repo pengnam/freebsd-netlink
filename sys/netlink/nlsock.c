@@ -1,13 +1,6 @@
 //TODO: HACK. to remove after integrating file into kernel
 #define VIMAGE 1
 #include <sys/param.h>
-#include <sys/module.h>
-#include <sys/kernel.h>
-#include <sys/jail.h>
-#include <sys/kernel.h>
-#include <sys/domain.h>
-#include <sys/lock.h>
-#include <sys/malloc.h>
 #include <sys/mbuf.h>
 #include <sys/priv.h>
 #include <sys/proc.h>
