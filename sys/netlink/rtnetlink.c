@@ -66,8 +66,8 @@ select_nhop(struct nhop_object *nh, const struct sockaddr *gw)
 }
 
 static int
-handle_rtm_get(struct rt_addrinfo *info, u_int fibnum, int addrs, int flags,
-    struct rib_cmd_info *rc)
+handle_rtm_getroute(struct rt_addrinfo *info, u_int fibnum, int addrs,
+    int flags, struct rib_cmd_info *rc)
 {
 	RIB_RLOCK_TRACKER;
 	struct rib_head *rnh;
@@ -250,33 +250,18 @@ fill_addrinfo(struct rtmsg *rtm, int len, struct rt_addrinfo *info)
 }
 
 static void
-init_sockaddrs_family(int family, struct sockaddr *dst, struct sockaddr *mask)
+init_sockaddrs(const struct rtentry *rt, struct sockaddr_in *dst, struct sockaddr_in *mask)
 {
-	if (family == AF_INET) {
-		struct sockaddr_in *dst4 = (struct sockaddr_in *)dst;
-		struct sockaddr_in *mask4 = (struct sockaddr_in *)mask;
 
-		bzero(dst4, sizeof(struct sockaddr_in));
-		bzero(mask4, sizeof(struct sockaddr_in));
+	bzero(dst, sizeof(struct sockaddr_in));
+	bzero(mask, sizeof(struct sockaddr_in));
 
-		dst4->sin_family = AF_INET;
-		dst4->sin_len = sizeof(struct sockaddr_in);
-		mask4->sin_family = AF_INET;
-		mask4->sin_len = sizeof(struct sockaddr_in);
-	}
-}
-static void
-export_rtaddrs(
-    const struct rtentry *rt, struct sockaddr *dst, struct sockaddr *mask)
-{
-	if (dst->sa_family == AF_INET) {
-		struct sockaddr_in *dst4 = (struct sockaddr_in *)dst;
-		struct sockaddr_in *mask4 = (struct sockaddr_in *)mask;
-		uint32_t scopeid = 0;
-		rt_get_inet_prefix_pmask(
-		    rt, &dst4->sin_addr, &mask4->sin_addr, &scopeid);
-		return;
-	}
+	dst->sin_family = AF_INET;
+	dst->sin_len = sizeof(struct sockaddr_in);
+	mask->sin_family = AF_INET;
+	mask->sin_len = sizeof(struct sockaddr_in);
+	uint32_t scopeid = 0;
+	rt_get_inet_prefix_pmask(rt, &dst->sin_addr, &mask->sin_addr, &scopeid);
 }
 
 static struct mbuf *
@@ -286,7 +271,7 @@ dump_rc(uint32_t tableid, uint32_t portid, uint32_t seq,
 
 	struct nlmsghdr *nlm;
 	struct rtmsg *rtm;
-	union sockaddr_union sa_dst, sa_mask;
+	struct sockaddr_in sa_dst, sa_mask;
 	// NOTE: Flag setting logic at
 	// https://elixir.bootlin.com/linux/v5.13-rc4/source/net/ipv4/fib_trie.c#L2248
 	// Assumed to always be a dump filter
@@ -298,9 +283,7 @@ dump_rc(uint32_t tableid, uint32_t portid, uint32_t seq,
 		return NULL;
 	}
 
-	int family = info->rti_info[RTAX_DST]->sa_family;
-	init_sockaddrs_family(family, &sa_dst.sa, &sa_mask.sa);
-	export_rtaddrs(rc->rc_rt, &sa_dst.sa, &sa_mask.sa);
+	init_sockaddrs(rc->rc_rt, &sa_dst, &sa_mask);
 
 	// 1. nlmsg
 	// TODO: Assumed to always be NEWROUTE
@@ -316,9 +299,9 @@ dump_rc(uint32_t tableid, uint32_t portid, uint32_t seq,
 	// TODO: Figure out flags
 	//
 	// TODO: Handle put errors
-	nla_put(m, RTA_DST, 4, &sa_dst.sin.sin_addr);
+	nla_put(m, RTA_DST, 4, &sa_dst.sin_addr);
 
-	nla_put(m, RTA_NETMASK, 4, &sa_mask.sin.sin_addr);
+	nla_put(m, RTA_NETMASK, 4, &sa_mask.sin_addr);
 
 	nla_put(m, RTA_GATEWAY, 4, &nh->gw4_sa.sin_addr);
 
@@ -391,7 +374,7 @@ rtnl_receive_message(void *data, struct socket *so)
 		break;
 
 	case RTM_GETROUTE:
-		error = handle_rtm_get(
+		error = handle_rtm_getroute(
 		    &info, fibnum, info.rti_addrs, info.rti_flags, &rc);
 		if (error != 0)
 			senderr(error);
@@ -407,11 +390,9 @@ rtnl_receive_message(void *data, struct socket *so)
 		D("here");
 
 		m = dump_rc(fibnum, rp->portid, hdr->nlmsg_seq, &info, &rc, nh);
-
+		//TODO: Fix to tag
 		_M_NLPROTO(m) = rp->rp.rcb_proto.sp_protocol;
-
 		nl_send_msg(m);
-		// senderr(EOPNOTSUPP);
 
 	report:
 
