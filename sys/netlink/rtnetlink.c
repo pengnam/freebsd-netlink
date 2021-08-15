@@ -24,7 +24,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-// TODO: Hack
+// TODO: Hack needed for rt_get_inet_prefix_pmask
 #define INET 1
 #include <sys/types.h>
 #include <sys/malloc.h>
@@ -51,11 +51,6 @@ MALLOC_DEFINE(M_RTNETLINK, "rtnetlink", "Memory used for rtnetlink packets");
 		    __FUNCTION__, ##__VA_ARGS__);                             \
 	} while (0)
 
-union sockaddr_union {
-	struct sockaddr sa;
-	struct sockaddr_in sin;
-	struct sockaddr_in6 sin6;
-};
 
 static struct nhop_object *
 select_nhop(struct nhop_object *nh, const struct sockaddr *gw)
@@ -123,21 +118,7 @@ get_rtax_from_nla_type(int nla_type, int *rtax_type)
 		return EINVAL;
 	}
 }
-static int
-get_nla_type_from_rtax(int rtax, int *nla_type)
-{
-	// TODO:Consider doing validation here
-	switch (rtax) {
-	case RTAX_DST:
-		*nla_type = RTA_DST;
-		return 0;
-	case RTAX_GATEWAY:
-		*nla_type = RTA_GATEWAY;
-		return 0;
-	default:
-		return EINVAL;
-	}
-}
+
 static int
 get_rtflag_from_nla_type(int nla_type)
 {
@@ -149,6 +130,9 @@ get_rtflag_from_nla_type(int nla_type)
 	}
 }
 
+/*
+ * Parses the netlink attributes into an rtinfo object.
+ */
 static int
 parse_rtmsg_nlattr(struct nlattr *head, int len, struct rt_addrinfo *rtinfo)
 {
@@ -236,6 +220,10 @@ parse_netmask(struct rtmsg *rtm, struct rt_addrinfo *info)
 	return 0;
 }
 
+/*
+ * Populates an addrinfo struct from an rtmsg.
+ * Parses the nl_attributes and parses the netmask.
+ */
 static int
 fill_addrinfo(struct rtmsg *rtm, int len, struct rt_addrinfo *info)
 {
@@ -252,7 +240,7 @@ fill_addrinfo(struct rtmsg *rtm, int len, struct rt_addrinfo *info)
 static void
 init_sockaddrs(const struct rtentry *rt, struct sockaddr_in *dst, struct sockaddr_in *mask)
 {
-
+	uint32_t scopeid = 0;
 	bzero(dst, sizeof(struct sockaddr_in));
 	bzero(mask, sizeof(struct sockaddr_in));
 
@@ -260,10 +248,13 @@ init_sockaddrs(const struct rtentry *rt, struct sockaddr_in *dst, struct sockadd
 	dst->sin_len = sizeof(struct sockaddr_in);
 	mask->sin_family = AF_INET;
 	mask->sin_len = sizeof(struct sockaddr_in);
-	uint32_t scopeid = 0;
+
 	rt_get_inet_prefix_pmask(rt, &dst->sin_addr, &mask->sin_addr, &scopeid);
 }
 
+/*
+ * Dumps output from a rib command into an rtmsg
+ */
 static struct mbuf *
 dump_rc(uint32_t tableid, uint32_t portid, uint32_t seq,
     struct rt_addrinfo *info, struct rib_cmd_info *rc, struct nhop_object *nh)
@@ -272,6 +263,8 @@ dump_rc(uint32_t tableid, uint32_t portid, uint32_t seq,
 	struct nlmsghdr *nlm;
 	struct rtmsg *rtm;
 	struct sockaddr_in sa_dst, sa_mask;
+	struct ifnet *ifp;
+	struct nlattr *metrics_nla;
 	// NOTE: Flag setting logic at
 	// https://elixir.bootlin.com/linux/v5.13-rc4/source/net/ipv4/fib_trie.c#L2248
 	// Assumed to always be a dump filter
@@ -305,12 +298,12 @@ dump_rc(uint32_t tableid, uint32_t portid, uint32_t seq,
 
 	nla_put(m, RTA_GATEWAY, 4, &nh->gw4_sa.sin_addr);
 
-	struct ifnet *ifp = nh->nh_ifp;
+	ifp = nh->nh_ifp;
 	if (ifp) {
 		nla_put_u32(m, RTA_OIF, ifp->if_index);
 	}
 
-	struct nlattr *metrics_nla = nla_nest_start(m, RTA_METRICS);
+	metrics_nla = nla_nest_start(m, RTA_METRICS);
 	// TODO: Change back to RTAX_MTU after comments included
 	nla_put_u32(m, 2, nh->nh_mtu);
 
@@ -321,16 +314,22 @@ dump_rc(uint32_t tableid, uint32_t portid, uint32_t seq,
 	return m;
 }
 
+/*
+ * Handler called by netlink subsystem when matching netlink message is received
+ */
 static int
 rtnl_receive_message(void *data, struct socket *so)
 {
-	struct rtentry *rt = NULL;
 	struct rt_addrinfo info;
 	struct epoch_tracker et;
 	// TODO: INET6
 	int len, error = 0, fibnum;
 	struct rib_cmd_info rc;
-	struct nhop_object *nh;
+	struct nhop_object *nh = NULL;
+	struct nlpcb * rp;
+	struct rtmsg * rtm;
+	struct nlmsghdr * hdr;
+	struct mbuf *m;
 
 	fibnum = so->so_fibnum;
 
@@ -341,14 +340,13 @@ rtnl_receive_message(void *data, struct socket *so)
 	}
 	NET_EPOCH_ENTER(et);
 	bzero(&info, sizeof(info));
-	nh = NULL;
-	struct nlmsghdr *hdr = (struct nlmsghdr *)data;
+
+	hdr = (struct nlmsghdr *)data;
 	len = hdr->nlmsg_len - NLMSG_HDRLEN;
 
-	struct rtmsg *rtm = (struct rtmsg *)nlmsg_data(hdr);
+	rtm = (struct rtmsg *)nlmsg_data(hdr);
 
-	struct nlpcb *rp = sotonlpcb(so);
-	struct mbuf *m;
+	rp = sotonlpcb(so);
 
 	if ((error = fill_addrinfo(rtm, len, &info)) != 0) {
 		senderr(error);
@@ -378,17 +376,7 @@ rtnl_receive_message(void *data, struct socket *so)
 		    &info, fibnum, info.rti_addrs, info.rti_flags, &rc);
 		if (error != 0)
 			senderr(error);
-		D("rib_cmd_info- cmd: %d, rt: %p, rc_nh_new: %p", rc.rc_cmd,
-		    rc.rc_rt, rc.rc_nh_new);
-		if (rc.rc_nh_new != NULL) {
-			D("flags:%d mtu:%d nh_ifp:%p nh_ifa: %p",
-			    rc.rc_nh_new->nh_flags, rc.rc_nh_new->nh_mtu,
-			    rc.rc_nh_new->nh_ifp, rc.rc_nh_new->nh_ifa);
-		}
-
 		nh = rc.rc_nh_new;
-		D("here");
-
 		m = dump_rc(fibnum, rp->portid, hdr->nlmsg_seq, &info, &rc, nh);
 		//TODO: Fix to tag
 		_M_NLPROTO(m) = rp->rp.rcb_proto.sp_protocol;
@@ -406,7 +394,6 @@ rtnl_receive_message(void *data, struct socket *so)
 
 flush:
 	NET_EPOCH_EXIT(et);
-	rt = NULL;
 
 	// TODO: INET6 stuff
 

@@ -29,27 +29,17 @@
 
 #include <sys/param.h>
 #include <sys/module.h>
-#include <sys/kernel.h>
-#include <sys/jail.h>
-#include <sys/kernel.h>
 #include <sys/domain.h>
 #include <sys/lock.h>
 #include <sys/malloc.h>
 #include <sys/mbuf.h>
-#include <sys/priv.h>
-#include <sys/proc.h>
 #include <sys/protosw.h>
-#include <sys/rwlock.h>
-#include <sys/signalvar.h>
 #include <sys/socket.h>
 #include <sys/socketvar.h>
 #include <sys/sysctl.h>
-#include <sys/systm.h>
 
 #include <net/if.h>
 #include <net/if_dl.h>
-#include <net/if_types.h>
-#include <net/netisr.h>
 #include <net/vnet.h>
 #include <net/raw_cb.h>
 #include <sys/types.h>
@@ -144,8 +134,6 @@ nlmsg_end(struct mbuf *m, struct nlmsghdr *nlh) {
 
 
 
-/*TODO: Put inline back*/
-
 // Places fields in nlmsghdr at the start of buffer 
 static struct nlmsghdr *
 nlmsg_put(struct mbuf* m, int portid, int seq, int type, int payload, int flags)
@@ -207,6 +195,7 @@ enum {
 	NLA_NUL_STRING,
 	__NLA_TYPE_MAX,
 };
+
 #define NLA_TYPE_MAX (__NLA_TYPE_MAX - 1)
 struct nla_policy {
     uint16_t        type;
@@ -231,7 +220,6 @@ static const uint8_t nla_attr_minlen[NLA_TYPE_MAX+1] = {
 	[NLA_U16]	= sizeof(uint16_t),
 	[NLA_U32]	= sizeof(uint32_t),
 	[NLA_U64]	= sizeof(uint64_t),
-	//[NLA_MSECS]	= sizeof(uint64_t),
 	[NLA_S8]	= sizeof(int8_t),
 	[NLA_S16]	= sizeof(int16_t),
 	[NLA_S32]	= sizeof(int32_t),
@@ -269,7 +257,9 @@ void *nla_data(struct nlattr *nla);
 
 #define MAX_POLICY_RECURSION_DEPTH 10
 
-	int nl_send_msg(struct mbuf *m);
+int 
+nl_send_msg(struct mbuf *m);
+
 int
 nla_put_u8(struct mbuf *m, int attrtype, uint8_t value);
 

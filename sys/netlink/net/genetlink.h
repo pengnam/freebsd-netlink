@@ -103,8 +103,6 @@ static inline int genlmsg_parse(const struct nlmsghdr *nlh,
 				const struct nla_policy *policy)
 {
 	//TODO:
-	//return __nlmsg_parse(nlh, family->hdrsize + GENL_HDRLEN, tb, maxtype,
-	//			     policy, NL_VALIDATE_STRICT);
 	return 0;
 }
 

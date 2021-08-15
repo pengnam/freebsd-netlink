@@ -194,6 +194,9 @@ nla_put(struct mbuf *m, int attrtype, int attrlen, const void *data)
 	struct nlmsghdr *hdr = mtod(m, struct nlmsghdr *);
 
 	// TODO: Check size limit or change to append
+	if (m->m_pkthdr.len < NLMSG_HDRLEN) {
+		return ENOBUFS;
+	}
 	nla = (struct nlattr *)(nl_data_end_ptr(m));
 	nla->nla_len = totlen;
 	nla->nla_type = attrtype;
@@ -207,7 +210,7 @@ nla_put(struct mbuf *m, int attrtype, int attrlen, const void *data)
 	m->m_pkthdr.len += totlen;
 	m->m_len += totlen;
 	D("type: %d  len: %d", nla->nla_type, m->m_len);
-	hdr->nlmsg_len += NLMSG_ALIGN(NLA_HDRLEN) + attrlen;
+	hdr->nlmsg_len += totlen;
 
 	return 0;
 }
