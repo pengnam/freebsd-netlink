@@ -1,28 +1,16 @@
 // TODO: HACK. to remove after integrating file into kernel
 #define VIMAGE 1
 #include <sys/param.h>
-#include <sys/systm.h>
 #include <sys/malloc.h>
 #include <sys/mbuf.h>
-#include <sys/priv.h>
-#include <sys/proc.h>
 #include <sys/protosw.h>
-#include <sys/queue.h>
-#include <sys/rwlock.h>
-#include <sys/signalvar.h>
 #include <sys/socket.h>
-#include <sys/socketvar.h>
-#include <sys/sysctl.h>
 #include <sys/syslog.h>
 
 #include <net/if.h>
-#include <net/if_dl.h>
-#include <net/if_types.h>
 #include <net/if_var.h>
 #include <net/netisr.h>
 #include <net/raw_cb.h>
-#include <net/route.h>
-#include <net/vnet.h>
 #include <netlink/net/netlink.h>
 
 MALLOC_DEFINE(M_NETLINK, "netlink", "Memory used for netlink packets");

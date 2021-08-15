@@ -27,30 +27,17 @@
 // TODO: Hack
 #define INET 1
 #include <sys/types.h>
-#include <sys/param.h>
-#include <sys/kernel.h>
 #include <sys/malloc.h>
-#include <sys/mbuf.h>
-#include <sys/proc.h>
-#include <sys/protosw.h>
 #include <sys/rmlock.h>
-#include <sys/rwlock.h>
 #include <sys/socket.h>
 
 #include <net/if.h>
 #include <net/if_dl.h>
-#include <net/if_llatbl.h>
-#include <net/if_types.h>
-#include <net/if_var.h>
-#include <net/netisr.h>
 #include <net/route.h>
 #include <net/route/route_ctl.h>
 #include <net/route/route_var.h>
 #include <net/rtnetlink.h>
-#include <net/vnet.h>
-#include <netinet/if_ether.h>
-#include <netinet/in.h>
-#include <netinet/ip_carp.h>
+
 MALLOC_DEFINE(M_RTNETLINK, "rtnetlink", "Memory used for rtnetlink packets");
 /*---- start debugging macros --luigi */
 // TODO: remove debugging macros
