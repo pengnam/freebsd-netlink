@@ -378,9 +378,7 @@ rtnl_receive_message(void *data, struct socket *so)
 			senderr(error);
 		nh = rc.rc_nh_new;
 		m = dump_rc(fibnum, rp->portid, hdr->nlmsg_seq, &info, &rc, nh);
-		//TODO: Fix to tag
-		_M_NLPROTO(m) = rp->rp.rcb_proto.sp_protocol;
-		nl_send_msg(m);
+		nl_send_msg(m, rp->rp.rcb_proto.sp_protocol);
 
 	report:
 

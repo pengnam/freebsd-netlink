@@ -120,11 +120,11 @@ static inline void genlmsg_end(struct mbuf *m, void *hdr)
 	nlmsg_end(m,  (struct nlmsghdr *)((char*)hdr - GENL_HDRLEN - NLMSG_HDRLEN));
 }
 
-static inline int genlmsg_send_msg(struct mbuf *m, uint32_t portid)
+static inline int genlmsg_send_msg(struct mbuf *m, uint32_t portid, uint32_t proto)
 {
  	struct nlmsghdr * nlmsg = mtod(m, struct nlmsghdr *);
  	nlmsg->nlmsg_pid = portid;
- 	return nl_send_msg(m);
+ 	return nl_send_msg(m, proto);
 }
 
 

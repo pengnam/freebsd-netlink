@@ -171,7 +171,6 @@ struct nlpcb {
 };
 #define sotonlpcb(so)       ((struct nlpcb *)(so)->so_pcb)
 
-#define _M_NLPROTO(m)  ((m)->m_pkthdr.rsstype)  /* netlink proto, 8 bit */
 #define NETISR_NETLINK  15  // XXX hack, must be unused and < 16
 
  /**
@@ -258,7 +257,7 @@ void *nla_data(struct nlattr *nla);
 #define MAX_POLICY_RECURSION_DEPTH 10
 
 int 
-nl_send_msg(struct mbuf *m);
+nl_send_msg(struct mbuf *m, int proto);
 
 int
 nla_put_u8(struct mbuf *m, int attrtype, uint8_t value);

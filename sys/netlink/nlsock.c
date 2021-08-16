@@ -11,7 +11,7 @@
 #include <net/if_var.h>
 #include <net/netisr.h>
 #include <net/raw_cb.h>
-#include <netlink/net/netlink.h>
+#include <net/netlink.h>
 
 MALLOC_DEFINE(M_NETLINK, "netlink", "Memory used for netlink packets");
 
@@ -344,12 +344,22 @@ nl_message_length(int offset, struct mbuf *m)
 
 /*
  * Sends a netlink mbuf using the netisr subsystem.
- * Assumes that nlmshhdr present with _M_NLPROTO set to matching sproto
+ * @proto: proto number of the message, used in netisr callback to match messages
  */
 int
-nl_send_msg(struct mbuf *m)
+nl_send_msg(struct mbuf *m, int proto)
 {
-	D("");
+	struct m_tag *tag;
+
+	//Set m_tag
+	tag = m_tag_get(PACKET_TAG_RTSOCKFAM, sizeof(uint8_t),
+		    M_NOWAIT);
+	if (tag == NULL) {
+		m_freem(m);
+		return ENOBUFS;
+	}
+	*(uint8_t *)(tag + 1) = proto;
+	m_tag_prepend(m, tag);
 
 #ifdef VIMAGE
 	if (V_loif) {
@@ -367,7 +377,6 @@ nl_send_msg(struct mbuf *m)
 
 /*
  * Sends an ack message
- * Assumes that nlmshhdr present with _M_NLPROTO set to matching protocol
  */
 static void
 nl_ack(uint8_t proto, uint32_t portid, struct nlmsghdr *nlmsg, int err)
@@ -386,10 +395,7 @@ nl_ack(uint8_t proto, uint32_t portid, struct nlmsghdr *nlmsg, int err)
 	// TODO: handle cookies
 
 	m = nlmsg_new(payload, M_WAITOK);
-	// TODO: Use m_tag instead of _M_NLPROTO
-	_M_NLPROTO(m) = proto;
-	D("m_len should be 0: %d", m->m_len);
-	D("pkthdr should be 0: %d", m->m_pkthdr.len);
+
 	if (!m) {
 		// TODO: handle error
 		D("error allocating nlmsg");
@@ -413,7 +419,7 @@ nl_ack(uint8_t proto, uint32_t portid, struct nlmsghdr *nlmsg, int err)
 	memcpy(&errmsg->msg, nlmsg, err ? nlmsg->nlmsg_len : sizeof(*nlmsg));
 
 	nlmsg_end(m, repnlh);
-	nl_send_msg(m);
+	nl_send_msg(m, proto);
 }
 
 static int
@@ -431,11 +437,11 @@ reallocate_memory(char **buffer, int length, int *buffer_length)
 	return 0;
 }
 /*
- * Processes an incoming packet
- * Assumes that every packet header is within a single mbuf
+ * Processes an incoming packet, which can contain multiple netlink messages
+ * Assumes that every netlink header is within a single mbuf
  */
 static int
-nl_receive_packet(struct mbuf *m, struct socket *so, int proto)
+nl_receive_packet(struct mbuf *m, struct socket *so)
 {
 	D("");
 	char *buffer = NULL;
@@ -443,9 +449,12 @@ nl_receive_packet(struct mbuf *m, struct socket *so, int proto)
 	struct nlmsghdr hdr;
 	struct nlmsghdr *h = &hdr;
 	struct nlpcb *rp;
+	unsigned short proto;
 	// NB: In attach, we verified that proto is valid and has a handler
-	nl_handler handler = nl_handlers[proto];
+	nl_handler handler;
 	rp = sotonlpcb(so);
+	proto = rp->rp.rcb_proto.sp_protocol;
+	handler = nl_handlers[proto];
 	while ((message_length = nl_message_length(offset, m))) {
 		if (buffer_length < message_length) {
 			if ((error = reallocate_memory(
@@ -477,8 +486,6 @@ static int
 nl_msg_to_netlink(struct mbuf *m, struct socket *so, ...)
 {
 	D("");
-	struct nlpcb *rp;
-	int proto;
 
 	if (m == NULL ||
 	    ((m->m_len < sizeof(long)) &&
@@ -487,10 +494,7 @@ nl_msg_to_netlink(struct mbuf *m, struct socket *so, ...)
 	if ((m->m_flags & M_PKTHDR) == 0)
 		panic("nl_msg_to_netlink");
 
-	rp = sotonlpcb(so);
-	proto = rp->rp.rcb_proto.sp_protocol;
-	D("proto: %d", proto);
-	nl_receive_packet(m, so, proto);
+	nl_receive_packet(m, so);
 	return 0;
 }
 
@@ -582,7 +586,7 @@ SYSCTL_NODE(_net, OID_AUTO, netlink, CTLFLAG_RD, 0, "");
 /*
  * Used for netisr to match socket against packet.
  * Matches according to portid
- * Returns 0 on match and returns 1 on match.
+ * Returns 0 on match and returns 1 on no match.
  */
 static int
 raw_input_netlink_cb(struct mbuf *m, struct sockproto *proto,
@@ -597,7 +601,6 @@ raw_input_netlink_cb(struct mbuf *m, struct sockproto *proto,
 	// True if portid of socket is equal to
 	D("result: %d", nlsk->portid == nlh->nlmsg_pid);
 	// NOTE: cb should return 0 on match, and 1 not on match
-	// Since == returns 1 if equals, != is used
 	if (nlsk->portid == nlh->nlmsg_pid) {
 		return 0;
 	} else {
@@ -614,9 +617,19 @@ static void
 nl_msg_from_netlink(struct mbuf *m)
 {
 	D("");
-	// TODO: Use m_tag instead of _M_NLPROTO
+	uint8_t * proto;
+	struct m_tag *tag;
+	tag = m_tag_find(m, PACKET_TAG_RTSOCKFAM, NULL);
+	if (tag != NULL) {
+		proto = (uint8_t *)(tag + 1);
+		m_tag_delete(m, tag);
+	} else {
+		printf("Error: can't find tag\n");
+		return;
+	}
+
 	struct sockproto nl_proto = { .sp_family = PF_NETLINK,
-		.sp_protocol = _M_NLPROTO(m) };
+		.sp_protocol = *proto };
 	raw_input_ext(
 	    m, &nl_proto, (struct sockaddr *)&nl_src, raw_input_netlink_cb);
 }
