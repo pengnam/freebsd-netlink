@@ -20,8 +20,7 @@ As per common practice, I have seperated the userspace API from the kernel API (
 ### Existing major todo list
 1. we currently assume the initial m_get to retreive a message of a sufficient size for a packet *which allows us to write straight into the buffer instead of using m_append*. The reason for this is because when "closing" a message, we call nlmsg_end or other functions to end the header, we use pointer artihmethic to determine the size of the message. Alternative is to call m_pullup before calling nlmsg_end on the message, or to continuously resize and transfer the message when more data is needed.
 
-2. use m_tag for proto values in the m_buff
-
+2. currently installing netlink as a module rather than as part of the kernel tree
 
 
 FreeBSD Source:
