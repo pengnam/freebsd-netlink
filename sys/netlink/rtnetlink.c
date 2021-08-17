@@ -39,16 +39,9 @@
 #include <net/rtnetlink.h>
 
 MALLOC_DEFINE(M_RTNETLINK, "rtnetlink", "Memory used for rtnetlink packets");
-/*---- start debugging macros --luigi */
-// TODO: remove debugging macros
-#define ND(format, ...)
 #define D(format, ...)                                                        \
 	do {                                                                  \
-		struct timeval __xxts;                                        \
-		microtime(&__xxts);                                           \
-		printf("%03d.%06d [%4d] %-25s " format "\n",                  \
-		    (int)__xxts.tv_sec % 1000, (int)__xxts.tv_usec, __LINE__, \
-		    __FUNCTION__, ##__VA_ARGS__);                             \
+		printf("%-10s " format "\n", __FUNCTION__, ##__VA_ARGS__);    \
 	} while (0)
 
 

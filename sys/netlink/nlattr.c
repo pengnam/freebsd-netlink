@@ -27,17 +27,10 @@
 
 #include <net/netlink.h>
 
-/*---- start debugging macros --luigi */
-#define ND(format, ...)
 #define D(format, ...)                                                        \
 	do {                                                                  \
-		struct timeval __xxts;                                        \
-		microtime(&__xxts);                                           \
-		printf("%03d.%06d [%4d] %-25s " format "\n",                  \
-		    (int)__xxts.tv_sec % 1000, (int)__xxts.tv_usec, __LINE__, \
-		    __FUNCTION__, ##__VA_ARGS__);                             \
+		printf("%-10s " format "\n", __FUNCTION__, ##__VA_ARGS__);    \
 	} while (0)
-
 int
 nla_type(const struct nlattr *nla)
 {
