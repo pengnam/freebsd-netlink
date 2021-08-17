@@ -224,6 +224,7 @@ fill_addrinfo(struct rtmsg *rtm, int len, struct rt_addrinfo *info)
 	if (parse_rtmsg_nlattr(
 		(struct nlattr *)(rtm + 1), len - sizeof(struct rtmsg), info))
 		return (EINVAL);
+    //TODO: Currently only routes where destination is a HOST see parse_netmask for more details
 	if (parse_netmask(rtm, info))
 		return (EINVAL);
 
